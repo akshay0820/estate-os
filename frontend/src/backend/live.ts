@@ -6,6 +6,7 @@ import { useStore } from '@/store/store';
 import type { OrgData } from '@/store/seed';
 import type { Channel, ConsentState, Deal, DealStage, Lead, LeadStatus, Organization, Property, Role, Task } from '@/store/types';
 import { can } from '@/lib/permissions';
+import { IMPORT_MAX_ROWS, mapHeaders, mapLeadRow, type ImportLeadInput, type ImportResult } from '@/lib/leadImport';
 import { supabase, functionsUrl } from './client';
 import { ApiError, check, checkMaybe, toApiError } from './errors';
 import {
@@ -825,33 +826,41 @@ export async function addNote(leadId: string, body: string) {
   await ensureLead(leadId);
 }
 
-export async function importLeads(rows: Record<string, string>[]) {
-  let created = 0;
-  let duplicates = 0;
-  let invalid = 0;
-  for (const r of rows.slice(0, 1000)) {
-    const name = r.name || [r.first_name, r.last_name].filter(Boolean).join(' ');
+export async function importLeads(rows: Record<string, string>[]): Promise<ImportResult> {
+  const result: ImportResult = { created: 0, duplicates: 0, invalid: 0, errors: [] };
+  const cols = mapHeaders(Object.keys(rows[0] ?? {}));
+  const reject = (row: number, reason: string) => {
+    result.invalid++;
+    result.errors.push({ row, reason });
+  };
+  for (const [i, r] of rows.slice(0, IMPORT_MAX_ROWS).entries()) {
+    const mapped = mapLeadRow(r, cols);
+    if ('error' in mapped) {
+      reject(i + 2, mapped.error);
+      continue;
+    }
     try {
-      const res = await createLeadQuiet({
-        name, phone: r.phone || r.mobile || '', email: r.email ?? '', source: r.source || 'Import',
-        type: (['buyer', 'seller', 'tenant', 'landlord', 'investor'].includes(r.type) ? r.type : 'buyer') as Lead['type'],
-        budgetMax: r.budget ? Number(r.budget.replace(/[^\d.]/g, '')) || null : null, locations: r.location ? [r.location] : [],
-      });
-      if (res === 'duplicate') duplicates++;
-      else created++;
-    } catch {
-      invalid++;
+      if ((await createLeadQuiet(mapped.input)) === 'duplicate') result.duplicates++;
+      else result.created++;
+    } catch (e) {
+      // Permission or session problems fail every row the same way: stop and report instead of repeating 1,000 times.
+      const err = toApiError(e);
+      if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHENTICATED' || err.code === 'RATE_LIMITED') throw err;
+      reject(i + 2, err.message);
     }
   }
-  await refresh('leads', 'activities');
-  return { created, duplicates, invalid };
+  if (result.created) await refresh('leads', 'activities');
+  return result;
 }
 
-async function createLeadQuiet(input: CreateLeadInput) {
+async function createLeadQuiet(input: ImportLeadInput) {
   const { orgId } = ctx();
   const r = check(await sb().rpc('create_lead', {
     p_org: orgId,
-    p_input: { name: input.name, phone: input.phone, email: input.email, source: input.source, type: input.type, budget_max: input.budgetMax ?? null, locations: input.locations ?? [] },
+    p_input: {
+      name: input.name, phone: input.phone, email: input.email, source: input.source, type: input.type, budget_max: input.budgetMax,
+      locations: input.locations, bedrooms: input.bedrooms, notes: input.notes ?? null,
+    },
     p_on_duplicate: 'ask',
   })) as { status: string };
   return r.status;

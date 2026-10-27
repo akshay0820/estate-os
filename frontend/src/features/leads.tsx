@@ -59,6 +59,7 @@ import { navigate, setParam } from '@/lib/router';
 import { CHANNEL_LABEL, findDuplicates, LEAD_FLOW, LEAD_STATUS, LOST_REASONS, matchProperties, OPEN_LEAD, outboundPolicy } from '@/lib/domain';
 import { fmtDateTime, inr, relTime, toLocalInput, fromLocalInput } from '@/lib/format';
 import { cx, downloadCsv, parseCsv } from '@/lib/util';
+import { IMPORT_MAX_ROWS, checkImportHeaders } from '@/lib/leadImport';
 import type { Channel, ConsentState, Lead, LeadStatus } from '@/store/types';
 import { CHANNEL_ICON, LeadStatusBadge, MemberChip, PolicyChecks, ScorePill, SortHeader } from './shared';
 import { LIVE, actions, attempt, ok } from '@/data/actions';
@@ -89,6 +90,7 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
   const [view, setView] = useState<View>(() => (localStorage.getItem('estate-os:leads-view') as View) || 'table');
   const [quick, setQuick] = useState<Quick>('open');
   const [q, setQ] = useState('');
+  const [importing, setImporting] = useState(false);
   const [source, setSource] = useState('');
   const [owner, setOwner] = useState('');
   const [status, setStatus] = useState('');
@@ -196,16 +198,31 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
   };
 
   const onImport = async (file: File) => {
-    const text = await file.text();
-    const rows = parseCsv(text);
-    if (!rows.length) {
-      toast({ kind: 'error', title: 'Nothing to import', body: 'The file has no rows. Expected headers: name, phone, email, source, budget, location.' });
+    if (/\.(xlsx|xls|ods|numbers)$/i.test(file.name)) {
+      toast({ kind: 'error', title: 'Save the sheet as CSV first', body: 'Google Sheets: File → Download → Comma-separated values (.csv). Excel: File → Save As → CSV UTF-8.' });
       return;
     }
-    if (rows.length > 1000) toast({ kind: 'warning', title: 'Large file', body: 'Only the first 1,000 rows are imported per file.' });
-    const r = await attempt(() => actions.importLeads(rows));
+    const rows = parseCsv(await file.text());
+    if (!rows.length) {
+      toast({ kind: 'error', title: 'Nothing to import', body: 'The file has a header row but no leads under it.' });
+      return;
+    }
+    const headerProblem = checkImportHeaders(rows);
+    if (headerProblem) {
+      toast({ kind: 'error', title: 'Columns not recognised', body: `${headerProblem} Found: ${Object.keys(rows[0]).slice(0, 8).join(', ')}.` });
+      return;
+    }
+    if (rows.length > IMPORT_MAX_ROWS) toast({ kind: 'warning', title: 'Large file', body: `Only the first ${IMPORT_MAX_ROWS.toLocaleString('en-IN')} rows are imported per file.` });
+    setImporting(true);
+    const r = await attempt(() => actions.importLeads(rows)).finally(() => setImporting(false));
     if (!r) return;
-    toast({ kind: r.created ? 'success' : 'warning', title: `Imported ${r.created} lead${r.created === 1 ? '' : 's'}`, body: `${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped · ${r.invalid} invalid row${r.invalid === 1 ? '' : 's'}` });
+    const why = r.errors.slice(0, 3).map((e) => `Row ${e.row}: ${e.reason}`).join(' · ');
+    const more = r.errors.length > 3 ? ` · and ${r.errors.length - 3} more` : '';
+    toast({
+      kind: r.created ? (r.invalid ? 'warning' : 'success') : 'error',
+      title: `Imported ${r.created} lead${r.created === 1 ? '' : 's'}`,
+      body: `${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped · ${r.invalid} row${r.invalid === 1 ? '' : 's'} not imported${why ? ` — ${why}${more}` : ''}`,
+    });
   };
 
   const bulkStatus = async (s: LeadStatus) => {
@@ -230,8 +247,8 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
         sub="Every enquiry from every channel, deduplicated, assigned and tracked from first touch to close."
         actions={
           <>
-            <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0]).finally(() => (e.target.value = ''))} />
-            {canImport && <Button icon={<FileUp size={15} />} onClick={() => fileRef.current?.click()} title="CSV with name, phone, email, source, budget, location">Import</Button>}
+            <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,text/csv,text/tab-separated-values" hidden onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0]).finally(() => (e.target.value = ''))} />
+            {canImport && <Button icon={<FileUp size={15} />} loading={importing} disabled={importing} onClick={() => fileRef.current?.click()} title="CSV from Google Sheets or Excel with columns such as Name, Phone, Email, Source, Budget, Location">{importing ? 'Importing…' : 'Import'}</Button>}
             {canExport && <Button icon={<Download size={15} />} onClick={() => void exportAll()}>Export</Button>}
             {canEdit && <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>New lead</Button>}
           </>

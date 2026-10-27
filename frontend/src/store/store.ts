@@ -12,6 +12,7 @@ import {
   scoreLead,
   type PolicyResult,
 } from '@/lib/domain';
+import { IMPORT_MAX_ROWS, mapHeaders, mapLeadRow, type ImportResult } from '@/lib/leadImport';
 import { correlationId, downloadCsv, normalizeEmail, normalizePhone, sleep, uid } from '@/lib/util';
 import { generateAll, type OrgData } from './seed';
 import { toast } from './ui';
@@ -100,7 +101,7 @@ interface Actions {
   assignLeads: (ids: ID[], memberId: ID | null) => void;
   archiveLeads: (ids: ID[], archived?: boolean) => void;
   mergeLeads: (keepId: ID, dropId: ID) => void;
-  importLeads: (rows: Record<string, string>[]) => { created: number; duplicates: number; invalid: number };
+  importLeads: (rows: Record<string, string>[]) => ImportResult;
   addNote: (leadId: ID, body: string) => void;
   // contacts
   updateContact: (id: ID, patch: Partial<Contact>) => void;
@@ -362,29 +363,26 @@ export const useStore = create<Store>()(
         },
 
         importLeads: (rows) => {
-          let created = 0;
-          let duplicates = 0;
-          let invalid = 0;
-          for (const r of rows) {
-            const name = r.name || [r.first_name, r.last_name].filter(Boolean).join(' ');
-            const phone = r.phone || r.mobile || '';
-            if (!name || (!phone && !r.email)) {
-              invalid++;
+          const result: ImportResult = { created: 0, duplicates: 0, invalid: 0, errors: [] };
+          const cols = mapHeaders(Object.keys(rows[0] ?? {}));
+          for (const [i, r] of rows.slice(0, IMPORT_MAX_ROWS).entries()) {
+            const mapped = mapLeadRow(r, cols);
+            if ('error' in mapped) {
+              result.invalid++;
+              result.errors.push({ row: i + 2, reason: mapped.error });
               continue;
             }
+            const { input } = mapped;
             const contacts = get().contacts.filter((c) => c.orgId === orgId());
-            if (findDuplicates({ phone, email: r.email }, contacts).length) {
-              duplicates++;
+            if (findDuplicates({ phone: input.phone, email: input.email }, contacts).length) {
+              result.duplicates++;
               continue;
             }
-            get().createLead({
-              name, phone, email: r.email ?? '', source: r.source || 'Import', type: (['buyer', 'seller', 'tenant', 'landlord', 'investor'].includes(r.type) ? r.type : 'buyer') as Lead['type'],
-              budgetMax: r.budget ? Number(r.budget.replace(/[^\d.]/g, '')) || null : null, locations: r.location ? [r.location] : [],
-            }, { type: 'user', name: `${get().me().name} (import)` });
-            created++;
+            get().createLead(input, { type: 'user', name: `${get().me().name} (import)` });
+            result.created++;
           }
-          get().log('lead.imported', 'lead', null, `${created} created, ${duplicates} duplicates skipped, ${invalid} invalid`);
-          return { created, duplicates, invalid };
+          get().log('lead.imported', 'lead', null, `${result.created} created, ${result.duplicates} duplicates skipped, ${result.invalid} invalid`);
+          return result;
         },
 
         addNote: (leadId, body) => {

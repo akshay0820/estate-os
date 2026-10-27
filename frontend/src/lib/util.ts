@@ -98,35 +98,45 @@ export function downloadCsv(filename: string, rows: (string | number | null | un
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * CSV / TSV from Google Sheets, Excel or another CRM: strips the UTF-8 BOM Excel adds, keeps line breaks inside quoted
+ * cells, and detects a comma, semicolon (European Excel) or tab delimiter from the header row. Headers are lower-cased;
+ * fully blank rows are dropped.
+ */
 export function parseCsv(text: string): Record<string, string>[] {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  if (!lines.length) return [];
-  const split = (line: string) => {
-    const out: string[] = [];
-    let cur = '';
-    let quoted = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (quoted) {
-        if (ch === '"' && line[i + 1] === '"') {
-          cur += '"';
-          i++;
-        } else if (ch === '"') quoted = false;
-        else cur += ch;
-      } else if (ch === '"') quoted = true;
-      else if (ch === ',') {
-        out.push(cur);
-        cur = '';
-      } else cur += ch;
-    }
-    out.push(cur);
-    return out.map((c) => c.trim());
-  };
-  const header = split(lines[0]).map((h) => h.toLowerCase());
-  return lines.slice(1).map((line) => {
-    const cells = split(line);
-    return Object.fromEntries(header.map((h, i) => [h, cells[i] ?? '']));
-  });
+  const src = text.replace(/^\uFEFF/, '');
+  const firstLine = src.slice(0, src.search(/\r?\n|$/));
+  const delim = [',', ';', '\t'].reduce((best, d) => (firstLine.split(d).length > firstLine.split(best).length ? d : best), ',');
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cur = '';
+  let quoted = false;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (quoted) {
+      if (ch === '"' && src[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else cur += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === delim) {
+      row.push(cur);
+      cur = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && src[i + 1] === '\n') i++;
+      row.push(cur);
+      rows.push(row);
+      row = [];
+      cur = '';
+    } else cur += ch;
+  }
+  row.push(cur);
+  rows.push(row);
+  const filled = rows.map((r) => r.map((c) => c.trim())).filter((r) => r.some(Boolean));
+  if (!filled.length) return [];
+  const header = filled[0].map((h) => h.toLowerCase());
+  return filled.slice(1).map((cells) => Object.fromEntries(header.map((h, i) => [h, cells[i] ?? ''])));
 }
 
 export function sleep(ms: number) {
