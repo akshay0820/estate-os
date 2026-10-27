@@ -14,6 +14,7 @@ Date: 2026-10-27.
 |---|---|
 | Multi-tenant workspaces, roles (owner, admin, manager, agent, viewer, finance), invite by link | DB tests; staging ROLE-01…10; isolation sweep across 44 tables |
 | Lead capture from signed web/portal webhooks, with replay and duplicate handling | Staging INT-01…10 |
+| CSV lead import (Google Sheets / Excel exports, up to 1,000 rows per file): common header spellings, Indian budget formats, duplicates skipped, a reason for each rejected row | Unit tests (`tests/lead-import.test.ts`, 11); staging run 2026-10-27 through `create_lead` as a workspace user (2 created, 1 duplicate, 1 rejected with its reason) |
 | Rule-based lead qualification with explanation and staff override | Staging QUA-01…05; local suites |
 | Property matching against the agency's own listings (budget, area, type, availability) with honest empty results | Staging MAT-01…05 |
 | Follow-up **drafts** grounded in real matches; approval workflow; **manual sending** | Staging FUP-01…06 |
@@ -26,7 +27,7 @@ Date: 2026-10-27.
 
 Only these, after the release gates in `PHASE_5_PRODUCTION_LAUNCH_PLAN.md` are met:
 - CRM: leads, contacts, properties, deals, tasks, appointments (internal);
-- lead capture by signed webhook;
+- lead capture by signed webhook, and CSV import of leads;
 - rule-based qualification and matching;
 - follow-up drafts with manual sending;
 - data-quality review;
@@ -43,7 +44,7 @@ Only these, after the release gates in `PHASE_5_PRODUCTION_LAUNCH_PLAN.md` are m
 | Automated message delivery (email, SMS, WhatsApp) | **Unavailable** (no provider) |
 | Calendar sync | **Unavailable** |
 | CRM connectors (import from or sync with other CRMs) | **Unavailable** |
-| Bulk import (CSV) of leads or listings | **Unavailable**; manual entry or webhook only |
+| Bulk import (CSV) of listings | **Unavailable**; listings are entered by hand (leads can be imported by CSV, §1) |
 | Unified inbox, workflow builder, central approvals and logs pages | **Not connected** in live mode |
 | Billing and subscriptions in the app | **None** (see §8) |
 
@@ -68,6 +69,7 @@ Per agency (`docs/pilot/AGENCY_ONBOARDING_CHECKLIST.md`; about 2–4 operator ho
 | Settings, invitations, webhook secret | **Partially automated** (in-app; done by the owner) |
 | Invitation delivery | **Manual** until custom SMTP is configured |
 | Listings | **Manual** |
+| Existing leads | **Partially automated**: the agency exports a CSV and uses Import on the Leads page |
 | Agent stage set-up (pause / resume) | **Partially automated** (in-app) |
 | Scope agreement, success criteria, consent wording | **Manual** |
 | Operator-initiated provisioning and onboarding status tracking | **Not implemented**; tracked in the checklist |
@@ -115,7 +117,7 @@ There is no billing code. Before any implementation, decide:
 
 - Any conversion, revenue, response-time or labour-saving improvement: **no customer evidence exists**.
 - "Fully autonomous" or "AI does it for you": every outbound action is human-approved, and the AI steps are unverified.
-- "AI calls your leads", "sends WhatsApp / SMS / email", "syncs with your calendar or CRM", "import your data in one click": not available.
+- "AI calls your leads", "sends WhatsApp / SMS / email", "syncs with your calendar or CRM", "import your data in one click": not available (lead import is a CSV file the agency exports and uploads; listings and other CRMs are not imported).
 - Any regulatory compliance claim (DPDP Act, TRAI/DND, GDPR or similar): **not reviewed**.
 - Specific uptime or support SLAs: no monitoring history.
 
