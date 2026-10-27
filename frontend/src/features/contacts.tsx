@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Mail, MessageCircle, Phone, ShieldOff, Users, Pencil } from 'lucide-react';
 import { Avatar, Badge, Button, Drawer, Empty, Field, Input, KV, Modal, PageHeader, Pager, SearchInput, Select, TableSkeleton } from '@/components/ui';
-import { confirm } from '@/components/dialogs';
+import { askConsentSource, confirm } from '@/components/dialogs';
 import { useStore } from '@/store/store';
 import { LIVE, actions, ok } from '@/data/actions';
 import { useDebounced, useServerQuery } from '@/data/useServerQuery';
@@ -157,7 +157,7 @@ function ContactDrawer({ id, onClose }: { id: string; onClose: () => void }) {
                 <span className="grow">{CHANNEL_LABEL[ch]}</span>
                 <ConsentBadge state={c.consents[ch]} />
                 {canEdit && c.lifecycle !== 'do_not_contact' && (
-                  <Select selectSize="sm" style={{ width: 130 }} value={c.consents[ch]} onChange={async (e) => { const v = e.target.value as Contact['consents'][Channel]; if (await ok(() => actions.setConsent(c.id, ch, v))) toast({ kind: 'success', title: `${CHANNEL_LABEL[ch]} consent updated`, body: 'Recorded with source and timestamp.' }); }} aria-label={`${CHANNEL_LABEL[ch]} consent`}>
+                  <Select selectSize="sm" style={{ width: 130 }} value={c.consents[ch]} onChange={async (e) => { const v = e.target.value as Contact['consents'][Channel]; const source = v === 'granted' ? await askConsentSource(CHANNEL_LABEL[ch]) : undefined; if (source === null) return; if (await ok(() => actions.setConsent(c.id, ch, v, source))) toast({ kind: 'success', title: `${CHANNEL_LABEL[ch]} consent updated`, body: 'Recorded with source and timestamp.' }); }} aria-label={`${CHANNEL_LABEL[ch]} consent`}>
                     <option value="granted">Granted</option>
                     <option value="unknown">Unknown</option>
                     <option value="revoked">Opted out</option>

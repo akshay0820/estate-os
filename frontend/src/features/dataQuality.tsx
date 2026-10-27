@@ -10,7 +10,7 @@ import { fmtDateTime, relTime } from '@/lib/format';
 import { navigate } from '@/lib/router';
 import type { Tone } from '@/lib/domain';
 import { LIVE } from '@/store/store';
-import { useServerQuery } from '@/data/useServerQuery';
+import { usePollWhile, useServerQuery } from '@/data/useServerQuery';
 import { attempt, ok } from '@/data/actions';
 import * as live from '@/backend/live';
 
@@ -51,6 +51,7 @@ export function DataQualityPage() {
   const [tab, setTab] = useState<PageTab>('issues');
   const ov = useServerQuery(LIVE, () => live.dataQualityOverview(), []);
   const o = ov.data;
+  usePollWhile(!!o?.last_scan && ['requested', 'running'].includes(o.last_scan.status), ov.reload, 10_000, 15 * 60_000);
   if (!LIVE) {
     return (
       <div className="page">

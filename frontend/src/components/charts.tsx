@@ -117,6 +117,8 @@ export function AreaChart({ labels, series, height = 240, format = (v) => String
   const w = Math.max(0, width - pad.l - pad.r);
   const h = height - pad.t - pad.b;
   const max = niceMax(Math.max(1, ...series.flatMap((s) => s.values)));
+  // With no data the scale is a placeholder 0–1; labelling it would print fractions rounded to "0, 0, 1, 1".
+  const empty = series.every((s) => s.values.every((v) => !(v > 0)));
   const n = labels.length;
   const x = (i: number) => pad.l + (n <= 1 ? w / 2 : (i / (n - 1)) * w);
   const y = (v: number) => pad.t + h - (v / max) * h;
@@ -145,9 +147,11 @@ export function AreaChart({ labels, series, height = 240, format = (v) => String
           {ticks.map((t, i) => (
             <g key={i}>
               <line x1={pad.l} x2={pad.l + w} y1={y(t)} y2={y(t)} stroke="var(--chart-grid)" strokeDasharray={i === 0 ? undefined : '3 4'} />
-              <text x={pad.l - 10} y={y(t) + 3.5} textAnchor="end" className="axis-text">
-                {format(t)}
-              </text>
+              {(!empty || i === 0) && (
+                <text x={pad.l - 10} y={y(t) + 3.5} textAnchor="end" className="axis-text">
+                  {format(t)}
+                </text>
+              )}
             </g>
           ))}
           {labels.map((l, i) =>
@@ -206,6 +210,7 @@ export function BarChart({ labels, series, height = 220, stacked, format = (v) =
   const n = labels.length;
   const totals = labels.map((_, i) => (stacked ? series.reduce((s, x) => s + x.values[i], 0) : Math.max(...series.map((x) => x.values[i]))));
   const max = niceMax(Math.max(1, ...totals));
+  const empty = totals.every((t) => !(t > 0));
   const band = w / (n || 1);
   const inner = band * 0.62;
   const y = (v: number) => pad.t + h - (v / max) * h;
@@ -217,9 +222,11 @@ export function BarChart({ labels, series, height = 220, stacked, format = (v) =
           {[0, 0.5, 1].map((f, i) => (
             <g key={i}>
               <line x1={pad.l} x2={pad.l + w} y1={y(f * max)} y2={y(f * max)} stroke="var(--chart-grid)" strokeDasharray={i ? '3 4' : undefined} />
-              <text x={pad.l - 10} y={y(f * max) + 3.5} textAnchor="end" className="axis-text">
-                {format(f * max)}
-              </text>
+              {(!empty || i === 0) && (
+                <text x={pad.l - 10} y={y(f * max) + 3.5} textAnchor="end" className="axis-text">
+                  {format(f * max)}
+                </text>
+              )}
             </g>
           ))}
           {labels.map((l, i) => {

@@ -67,7 +67,8 @@ export function relTime(ts: number | null | undefined, now = Date.now()): string
   const abs = Math.abs(diff);
   const future = diff > 0;
   let label: string;
-  if (abs < 45_000) return future ? 'in a moment' : 'just now';
+  // Server timestamps can run a few seconds ahead of this browser's clock: a moment-old event must not read as future.
+  if (abs < 45_000) return future && abs >= 30_000 ? 'in a moment' : 'just now';
   if (abs < HOUR) label = `${Math.round(abs / MIN)}m`;
   else if (abs < DAY) label = `${Math.round(abs / HOUR)}h`;
   else if (abs < 30 * DAY) label = `${Math.round(abs / DAY)}d`;

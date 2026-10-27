@@ -51,7 +51,7 @@ import {
   Tabs,
   Textarea,
 } from '@/components/ui';
-import { confirm } from '@/components/dialogs';
+import { askConsentSource, confirm } from '@/components/dialogs';
 import { useStore } from '@/store/store';
 import { useCan, useLookup, useMe, useOrg, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
@@ -511,7 +511,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
   const contacts = useOrgList('contacts');
   const members = useOrgList('members');
   const org = useOrg();
-  const [f, setF] = useState({ name: '', phone: '', email: '', source: 'Walk-in', type: 'buyer' as Lead['type'], budget: '', location: '', bedrooms: '', timeline: '', notes: '', assignedTo: 'auto' });
+  const [f, setF] = useState({ name: '', phone: '', email: '', source: 'Walk-in', type: 'buyer' as Lead['type'], budget: '', location: '', propertyType: '', bedrooms: '', timeline: '', notes: '', assignedTo: 'auto' });
   const [consent, setConsent] = useState<Channel[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [choice, setChoice] = useState<'link' | 'create' | null>(null);
@@ -541,7 +541,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
     const r = await attempt(() => actions.createLead({
       name: f.name.trim(), phone: f.phone, email: f.email, source: f.source, type: f.type,
       budgetMax: f.budget ? Math.round(Number(f.budget) * multiplier) : null, locations: f.location.trim() ? [f.location.trim()] : [],
-      bedrooms: f.bedrooms ? Number(f.bedrooms) : null, timeline: f.timeline || null, notes: f.notes,
+      propertyType: (f.propertyType || null) as Lead['propertyType'] | null, bedrooms: f.bedrooms ? Number(f.bedrooms) : null, timeline: f.timeline || null, notes: f.notes,
       assignedTo: f.assignedTo === 'auto' ? undefined : f.assignedTo || null,
       existingContactId: choice === 'link' && dupes[0] ? dupes[0].contactId : null,
       consentChannels: consent,
@@ -598,7 +598,13 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
               {['Walk-in', 'Referral', 'Website form', '99acres', 'MagicBricks', 'Housing.com', 'Meta Ads', 'Google Ads', 'Phone enquiry'].map((s) => <option key={s}>{s}</option>)}
             </Select>
           </Field>
-          <Field label="Owner" hint={f.assignedTo === 'auto' ? `Rule: ${org.assignment.replace(/_/g, ' ')}` : undefined}>
+          <Field
+            label="Owner"
+            hint={f.assignedTo !== 'auto' ? undefined
+              // Auto-assignment only picks active members with the Agent role (private.pick_assignee).
+              : members.some((m) => m.status === 'active' && m.role === 'agent') ? `Rule: ${org.assignment.replace(/_/g, ' ')}`
+              : 'No team member has the Agent role, so auto-assign will leave this lead unassigned. Pick an owner, or give someone the Agent role in Team.'}
+          >
             <Select value={f.assignedTo} onChange={set('assignedTo')}>
               <option value="auto">Auto-assign</option>
               <option value="">Leave unassigned</option>
@@ -611,6 +617,12 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
           <Field label="Preferred locality" hint="Leave blank if unknown.">
             <Input value={f.location} onChange={set('location')} list="lead-localities" placeholder="e.g. Powai" />
             <datalist id="lead-localities">{localities.map((l) => <option key={l} value={l} />)}</datalist>
+          </Field>
+          <Field label="Property type">
+            <Select value={f.propertyType} onChange={set('propertyType')}>
+              <option value="">Unknown</option>
+              {['apartment', 'villa', 'penthouse', 'plot', 'office', 'retail'].map((t) => <option key={t}>{t}</option>)}
+            </Select>
           </Field>
           <Field label="Bedrooms">
             <Select value={f.bedrooms} onChange={set('bedrooms')}>
@@ -848,7 +860,7 @@ function Overview({ lead, onEdit, canEdit }: { lead: Lead; onEdit: () => void; c
             ['Intent', <span key="i" style={{ textTransform: 'capitalize' }}>{lead.intent}</span>],
             ['Budget', lead.budgetMax ? <>{lead.budgetMin ? `${inr(lead.budgetMin)} – ` : 'Up to '}{inr(lead.budgetMax)}{lead.intent === 'rent' ? '/mo' : ''} {ai('budget')}</> : <span className="faint">Unknown</span>],
             ['Locations', lead.locations.length ? <>{lead.locations.map((l) => <span key={l} className="tag">{l}</span>)} {ai('locations')}</> : <span className="faint">Unknown</span>],
-            ['Configuration', lead.propertyType ? <>{lead.bedrooms != null ? `${lead.bedrooms} BHK ` : ''}{lead.propertyType} {ai('bedrooms') || ai('propertyType')}</> : <span className="faint">Unknown</span>],
+            ['Configuration', lead.propertyType || lead.bedrooms != null ? <>{lead.bedrooms != null ? `${lead.bedrooms} BHK ` : ''}{lead.propertyType ?? <span className="faint">type unknown</span>} {ai('bedrooms') || ai('propertyType')}</> : <span className="faint">Unknown</span>],
             ['Timeline', lead.timeline ? <>{lead.timeline} {ai('timeline')}</> : <span className="faint">Unknown</span>],
             ['Must-haves', lead.amenities.length ? lead.amenities.map((a) => <span key={a} className="tag">{a}</span>) : <span className="faint">None stated</span>],
           ]}
@@ -895,7 +907,9 @@ function Overview({ lead, onEdit, canEdit }: { lead: Lead; onEdit: () => void; c
                     disabled={!canEdit || contact.lifecycle === 'do_not_contact'}
                     label={`${CHANNEL_LABEL[ch]} consent`}
                     onChange={async (v) => {
-                      if (!(await ok(() => actions.setConsent(contact.id, ch, v ? 'granted' : 'revoked')))) return;
+                      const source = v ? await askConsentSource(CHANNEL_LABEL[ch]) : undefined;
+                      if (source === null) return;
+                      if (!(await ok(() => actions.setConsent(contact.id, ch, v ? 'granted' : 'revoked', source)))) return;
                       toast({ kind: v ? 'success' : 'warning', title: v ? `${CHANNEL_LABEL[ch]} consent granted` : `${CHANNEL_LABEL[ch]} opt-out recorded`, body: v ? 'Recorded with source and timestamp.' : 'Pending follow-ups on this channel cancelled.' });
                     }}
                   />

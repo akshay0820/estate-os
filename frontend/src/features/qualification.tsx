@@ -6,7 +6,7 @@ import { Badge, Button, Input, Select } from '@/components/ui';
 import { toast } from '@/store/ui';
 import { inr, relTime } from '@/lib/format';
 import type { Tone } from '@/lib/domain';
-import { useServerQuery } from '@/data/useServerQuery';
+import { usePollWhile, useServerQuery } from '@/data/useServerQuery';
 import { ok } from '@/data/actions';
 import * as live from '@/backend/live';
 import type { Lead } from '@/store/types';
@@ -67,6 +67,7 @@ export function QualificationPanel({ lead }: { lead: Lead }) {
   const [override, setOverride] = useState<live.QualStatus | ''>('');
   const d = q.data;
   const c = d?.current;
+  usePollWhile(!!d?.run && ['received', 'retry_scheduled'].includes(d.run.status), q.reload);
 
   const run = async () => {
     setBusy(true);

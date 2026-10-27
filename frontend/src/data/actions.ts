@@ -61,9 +61,9 @@ export const actions = {
     if (LIVE) return live.updateContact(id, patch);
     s().updateContact(id, patch);
   },
-  async setConsent(contactId: string, channel: Channel, state: ConsentState) {
-    if (LIVE) return live.setConsent(contactId, channel, state);
-    s().setConsent(contactId, channel, state);
+  async setConsent(contactId: string, channel: Channel, state: ConsentState, source?: string) {
+    if (LIVE) return live.setConsent(contactId, channel, state, source);
+    s().setConsent(contactId, channel, state, source);
   },
   async optOutAll(contactId: string) {
     if (LIVE) return live.optOutAll(contactId);

@@ -163,7 +163,7 @@ function SignInFlow() {
     <Frame>
       <h1 className="auth-title">{mode === 'signin' ? <>Welcome <span className="serif">back</span></> : mode === 'signup' ? 'Create your account' : 'Reset your password'}</h1>
       <p className="auth-sub">
-        {invited ? 'You’ve been invited to a workspace. Sign in or create an account with the invited email to join.' : mode === 'forgot' ? 'We’ll email you a link to choose a new password.' : 'Sign in to your agency’s workspace.'}
+        {invited ? 'You’ve been invited to a workspace. Sign in or create an account with the invited email to join.' : mode === 'forgot' ? 'We’ll email you a link to choose a new password.' : mode === 'signup' ? 'Create your login, then set up your agency’s workspace.' : 'Sign in to your agency’s workspace.'}
       </p>
       {notice && <div className="banner info">{notice}</div>}
       <form className="stack" onSubmit={submit} noValidate>

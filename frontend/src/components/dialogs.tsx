@@ -28,6 +28,20 @@ export function confirm(opts: ConfirmOptions): Promise<{ ok: boolean; value?: st
   return new Promise((resolve) => useConfirmStore.setState({ opts, resolve }));
 }
 
+/** How staff obtained consent: asked before any grant is recorded, and stored as the consent source. */
+export const CONSENT_SOURCES = ['Customer agreed on a call', 'Ticked consent on the enquiry form', 'Written consent (email or message)', 'Agreed in person'];
+
+/** Confirms a consent grant and returns its source, or null when cancelled. Opt-outs need no confirmation. */
+export async function askConsentSource(channelLabel: string): Promise<string | null> {
+  const r = await confirm({
+    title: `Record ${channelLabel} consent?`,
+    body: 'Only record consent the customer actually gave. The source and time are stored and checked before every message or call.',
+    reasons: CONSENT_SOURCES,
+    confirmLabel: 'Record consent',
+  });
+  return r.ok ? `Staff update: ${r.value}` : null;
+}
+
 export function ConfirmHost() {
   const { opts, resolve } = useConfirmStore();
   if (!opts || !resolve) return null;

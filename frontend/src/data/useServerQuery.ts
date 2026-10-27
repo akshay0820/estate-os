@@ -50,3 +50,21 @@ export function useDebounced<T>(value: T, ms = 250): T {
   }, [value, ms]);
   return v;
 }
+
+/**
+ * Reloads a query every `ms` while `active` (a background job it shows is queued or running), so the screen moves on to
+ * the result by itself instead of staying on "Queued". Stops after `maxMs` so a stuck job does not poll forever.
+ */
+export function usePollWhile(active: boolean, reload: () => void, ms = 5000, maxMs = 5 * 60_000) {
+  const ref = useRef(reload);
+  ref.current = reload;
+  useEffect(() => {
+    if (!active) return;
+    const started = Date.now();
+    const t = setInterval(() => {
+      if (Date.now() - started > maxMs) clearInterval(t);
+      else ref.current();
+    }, ms);
+    return () => clearInterval(t);
+  }, [active, ms, maxMs]);
+}

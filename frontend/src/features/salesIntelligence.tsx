@@ -13,7 +13,7 @@ import { downloadCsv } from '@/lib/util';
 import { navigate } from '@/lib/router';
 import type { Tone } from '@/lib/domain';
 import { LIVE } from '@/store/store';
-import { useServerQuery, type ServerQuery } from '@/data/useServerQuery';
+import { usePollWhile, useServerQuery, type ServerQuery } from '@/data/useServerQuery';
 import { attempt, ok } from '@/data/actions';
 import * as live from '@/backend/live';
 
@@ -348,6 +348,7 @@ function InsightsTab({ canManage }: { canManage: boolean }) {
 
 function ForecastTab() {
   const q = useServerQuery(true, () => live.siForecasts(), []);
+  usePollWhile(!!q.data?.some((f) => f.status === 'queued'), q.reload);
   const [days, setDays] = useState('30');
   const today = new Date();
   const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -489,6 +490,7 @@ function reportCsv(result: Record<string, unknown>) {
 export function LiveReportsPage() {
   const ov = useServerQuery(true, () => live.siOverview('last_30_days', {}), []);
   const q = useServerQuery(true, () => live.siReports(), []);
+  usePollWhile(!!q.data?.some((r) => r.status === 'queued'), q.reload);
   const [kind, setKind] = useState('executive_summary');
   const [preset, setPreset] = useState<live.SiPreset>('last_30_days');
   const can = ov.data?.can;

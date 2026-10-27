@@ -4,6 +4,7 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { useStore } from '@/store/store';
 import { supabase } from './client';
 import { ApiError, check, toApiError } from './errors';
+import { authMessage } from './authMessages';
 import { loadMembers, loadOrganizations, refresh } from './live';
 
 export type Phase = 'loading' | 'signed_out' | 'recovery' | 'onboarding' | 'loading_org' | 'ready' | 'error';
@@ -193,13 +194,4 @@ export function captureInviteToken() {
 
 function pendingInviteToken() {
   return sessionStorage.getItem('estate-os:invite');
-}
-
-function authMessage(raw: string) {
-  if (/invalid login credentials/i.test(raw)) return 'Email or password is incorrect.';
-  if (/email not confirmed/i.test(raw)) return 'Confirm your email first — check your inbox for the link.';
-  if (/password should be|weak password/i.test(raw)) return 'Choose a stronger password (at least 8 characters, mixing letters and numbers).';
-  if (/already registered|already exists/i.test(raw)) return 'An account with this email already exists. Sign in instead.';
-  if (/rate limit|too many/i.test(raw)) return 'Too many attempts. Wait a minute and try again.';
-  return 'We couldn’t complete that request. Please try again.';
 }

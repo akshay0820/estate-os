@@ -377,6 +377,7 @@ export interface CreateLeadInput {
   type: Lead['type'];
   budgetMax?: number | null;
   locations?: string[];
+  propertyType?: Lead['propertyType'] | null;
   bedrooms?: number | null;
   timeline?: string | null;
   notes?: string;
@@ -393,7 +394,7 @@ export async function createLead(input: CreateLeadInput, onDuplicate: 'ask' | 'l
   const { orgId } = ctx();
   const payload: Record<string, unknown> = {
     name: input.name, phone: input.phone, email: input.email, source: input.source, type: input.type,
-    budget_max: input.budgetMax ?? null, locations: input.locations ?? [], bedrooms: input.bedrooms ?? null,
+    budget_max: input.budgetMax ?? null, locations: input.locations ?? [], property_type: input.propertyType ?? null, bedrooms: input.bedrooms ?? null,
     timeline: input.timeline ?? null, notes: input.notes ?? '', consent_channels: input.consentChannels ?? [],
   };
   if (input.assignedTo !== undefined) payload.assigned_to = input.assignedTo;
@@ -878,8 +879,8 @@ export async function updateContact(id: string, patch: { name?: string; phone?: 
   useLiveRev.getState().bump();
 }
 
-export async function setConsent(contactId: string, channel: Channel, state: ConsentState) {
-  checkMaybe(await sb().rpc('set_contact_consent', { p_contact: contactId, p_channel: channel, p_status: state, p_source: 'Staff update' }));
+export async function setConsent(contactId: string, channel: Channel, state: ConsentState, source = 'Staff update') {
+  checkMaybe(await sb().rpc('set_contact_consent', { p_contact: contactId, p_channel: channel, p_status: state, p_source: source }));
   await ensureContact(contactId);
 }
 

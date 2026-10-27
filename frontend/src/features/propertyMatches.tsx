@@ -8,7 +8,7 @@ import { toast } from '@/store/ui';
 import { inr, relTime } from '@/lib/format';
 import { navigate } from '@/lib/router';
 import type { Tone } from '@/lib/domain';
-import { useServerQuery } from '@/data/useServerQuery';
+import { usePollWhile, useServerQuery } from '@/data/useServerQuery';
 import { attempt, ok } from '@/data/actions';
 import * as live from '@/backend/live';
 import type { Lead } from '@/store/types';
@@ -60,6 +60,7 @@ export function PropertyMatchesPanel({ lead, onBook }: { lead: Lead; onBook: (pr
   const [note, setNote] = useState('');
   const d = q.data;
   const c = d?.current;
+  usePollWhile(!!d?.run && ['received', 'retry_scheduled'].includes(d.run.status), q.reload);
 
   const run = async () => {
     setBusy('run');
