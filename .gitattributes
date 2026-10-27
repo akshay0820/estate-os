@@ -1,0 +1,2 @@
+# Keep line endings identical on every machine and in CI (migration files are compared byte for byte).
+* text=auto eol=lf

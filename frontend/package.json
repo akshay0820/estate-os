@@ -1,0 +1,41 @@
+{
+  "name": "estate-os",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:db": "vitest run tests/db",
+    "lint": "eslint .",
+    "check:functions": "tsc -p tsconfig.functions.json",
+    "predeploy": "node scripts/predeploy-check.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.5",
+    "lucide-react": "0.468.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "^4.6.7",
+    "zustand": "5.0.2"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
+    "@electric-sql/pglite": "^0.2.17",
+    "@eslint/js": "9.39.5",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.7.0",
+    "eslint": "9.39.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "16.5.0",
+    "supabase-js-edge": "npm:@supabase/supabase-js@2.118.0",
+    "typescript": "5.6.3",
+    "typescript-eslint": "8.72.0",
+    "vite": "6.4.5",
+    "vitest": "4.1.12"
+  }
+}

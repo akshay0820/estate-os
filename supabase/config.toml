@@ -1,0 +1,60 @@
+# Supabase CLI configuration (used by `supabase start`, `supabase db push`, `supabase functions deploy`).
+project_id = "estate-os"
+
+[auth]
+site_url = "http://localhost:5180"
+additional_redirect_urls = ["http://localhost:5180"]
+enable_signup = true
+minimum_password_length = 8
+
+[auth.email]
+enable_confirmations = true
+double_confirm_changes = true
+
+[storage]
+file_size_limit = "20MiB"
+
+# The intake endpoint authenticates callers with an HMAC signature, not a user JWT.
+[functions.lead-intake]
+verify_jwt = false
+
+# Retell webhooks are authenticated by X-Retell-Signature; the worker by a Vault shared secret.
+[functions.voice-webhook]
+verify_jwt = false
+
+[functions.voice-worker]
+verify_jwt = false
+
+[functions.voice-calls]
+verify_jwt = true
+
+# Workers called every minute by pg_cron through pg_net. They authenticate the caller with a per-worker
+# shared secret held in Vault, not a user JWT; with verify_jwt = true every cron call would get 401.
+[functions.qualification-worker]
+verify_jwt = false
+
+[functions.property-matching-worker]
+verify_jwt = false
+
+[functions.follow-up-worker]
+verify_jwt = false
+
+[functions.calendar-sync-worker]
+verify_jwt = false
+
+# Called from the app by signed-in users; the JWT is verified by the platform and then used for every query.
+[functions.appointment-assistant]
+verify_jwt = true
+
+[functions.crm-enrichment]
+verify_jwt = true
+
+[functions.sales-intelligence-recommend]
+verify_jwt = true
+
+[functions.sales-analyst]
+verify_jwt = true
+
+# Uptime monitoring endpoint: public callers get { status } only; aggregate signals need the HEALTH_TOKEN secret header.
+[functions.health]
+verify_jwt = false

@@ -1,0 +1,21 @@
+# Dependencies and builds
+node_modules/
+dist/
+
+# Local environment and credentials — never commit real values (examples are allowed)
+.env
+.env.*
+!.env.example
+*.local.md
+*.pem
+*.key
+
+# Local tool state
+.claude/settings.local.json
+supabase/.temp/
+supabase/.branches/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log

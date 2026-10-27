@@ -1,0 +1,72 @@
+# Database migrations
+
+Source of truth: `supabase/migrations/` (applied in filename order). Never edit an applied migration — add a new one.
+
+| File | Contents |
+|---|---|
+| `20261025000100_foundation.sql` | `private` schema, helpers (`fail`, `random_token`, `sha256_hex`), `profiles` (+ auth triggers), `organizations` (+ settings validation), `organization_memberships`, `role_permissions` + `has_perm` / `is_org_member` / `org_role`, membership guard (no self-escalation, owner-only owner grants, last-owner protection), `invitations`, RLS, column grants, RPCs `create_organization`, `invite_member`, `revoke_invitation`, `accept_invitation`, `accept_invitation_by_id`, `my_invitations` |
+| `20261025000200_crm.sql` | `contacts`, `communication_consents`, `leads` (+ `status_rank`), `lead_status_history`, `lead_assignments`, `properties`, `deals`, `commissions`, `appointments`, `tasks`, `activities`; indexes; org-immutability triggers; RLS; column-level grants |
+| `20261025000300_ops.sql` | `notifications` (+ dedupe index), `audit_logs` (append-only) + generic row auditor, `documents` + private `documents` Storage bucket and object policies, `integrations`, `webhook_events` |
+| `20261025000400_logic.sql` | Business triggers (normalization, cross-tenant reference checks, scoring, status transitions, assignment history, booking conflicts with advisory locks, deal→commission/lead/property cascade, commission lifecycle), activity/notification writers, RPCs `create_lead`, `merge_leads`, `set_contact_consent`, `opt_out_contact`, `appointment_free_slots`, `lead_view_counts`, `mark_all_notifications_read`, `dashboard_metrics`, `record_export`, `ingest_lead` (service role), `webhook_secret_for` (service role), `rotate_webhook_secret`; EXECUTE grants |
+| `20261025000500_hardening.sql` | Security-advisor follow-up: `has_perm`, `is_org_member`, `org_role` no longer executable by `anon` |
+| `20261025000600_rejected_webhooks.sql` | `record_rejected_webhook` (service role only): signature failures stored as one row per org, provider and minute; repeats bump `attempt_count` |
+| `20261025000700_ingest_rejected_bounded.sql` | `ingest_lead`'s rejected branch now uses `record_rejected_webhook` instead of inserting a unique row per call |
+| `20261025000800_lead_intake_agent.sql` | Agent 01: `agent_runs`, `agent_run_steps`, `outbox_events`, `review_items` (RLS, read-only to clients); `leads.intake_status` / `duplicate_status`; intake pipeline RPCs; `ingest_lead` now delegates to it; optional `settings.intake` validation. Additive — no data changed |
+| `20261025000900_intake_worker_schedule.sql` | `pg_cron` job `lead-intake-worker` (every minute, `select public.intake_process_due(25)`); skipped where pg_cron is absent |
+| `20261025001000_voice_calling_agent.sql` | Agent 02: `voice_settings`, `voice_calls`, `voice_call_transcripts` (only `calls.recordings`), `voice_call_events` (webhook dedupe); pre-call policy, call state machine, opt-out / handoff, analysis application, Agent 3 handoff; `pg_net` + cron job `voice-worker` (URL and shared secret in Vault). Additive |
+| `20261025001100_pg_net_schema.sql` | Reinstalls `pg_net` into `extensions` (advisor 0014). On a fresh install 0010 already does this and 0011 is a no-op |
+| `20261025001200_sales_qualification_agent.sql` | Agent 03: `qualification_settings`, `lead_qualifications` (history, one current per lead), `leads.qualification_status` / `qualification_id`; deterministic engine, outbox consumer, Claude-step endpoints, review, settings; widens `outbox_events.event_type` to allow `a.b.c` names; cron `qualification-tick` (SQL) and `qualification-worker` (pg_net, Vault URL + secret). Additive |
+| `20261025001300_property_matching_agent.sql` | Agent 04: `property_matching_settings`, `property_match_runs` (history, one current per lead), `property_matches` (ranked recommendations with breakdown, strengths / trade-offs / caveats, snapshot, lifecycle); deterministic eligibility + scoring engine, outbox consumer, Claude-summary endpoints, revalidating actions, settings; triggers that invalidate / flag recommendations when listings change and mark booked viewings; cron `property-matching-tick` (SQL) and `property-matching-worker` (pg_net, Vault URL + secret). Additive |
+| `20261025001400_follow_up_agent.sql` | Agent 05: `follow_up_settings`, `follow_ups` (planned / drafted / approved / sent communications and hand-offs, one active per lead and purpose); deterministic outbound policy, planner, outbox consumer, Claude-draft and provider-dispatch endpoints, approval / manual-send RPCs; synchronous stop triggers on consent, contact, lead and match changes; outbox fan-out trigger to `follow_up_agent`; cron `follow-up-tick` (SQL) and `follow-up-worker` (pg_net, Vault URL + secret). Additive |
+| `20261025001500_appointment_agent.sql` | Agent 06: `scheduling_settings`, `staff_working_hours`, `availability_blocks`, `calendar_sync_state`, `appointment_history`; appointment reference / version / idempotency / calendar-sync columns (existing rows get a reference only); state-machine and lifecycle triggers (history, `appointment.*` events, Agent 05 handoff); availability, booking, confirm, reschedule, cancel, outcome and settings RPCs; calendar sync boundary (claim / result / busy import, no adapter); Agent 05 `fu_create` replaced and four functions wrapped as `*_base` for appointment confirmations / reminders / cancellations; crons `appointment-tick` (SQL) and `calendar-sync-worker` (pg_net, Vault URL + secret). Additive |
+| `20261025001600_crm_data_agent.sql` | Agent 07: `data_quality_settings`, `data_quality_scans`, `data_quality_issues` (fingerprinted findings with lifecycle), `duplicate_candidates`, `record_merges`, `field_provenance`, `data_quality_queue`, `data_quality_daily`; `contacts.merged_into`, `properties.merged_into`, generated `properties.address_key`; deterministic rules, duplicate detection, human-approved / revertible merges, provenance triggers with verified-value protection, change-queue triggers, read models and the Agent 08 context; `private.leads_before` replaced (contact change only inside an approved merge); cron `crm-data-tick` (SQL). Additive |
+| `20261025001700_sales_intelligence_agent.sql` | Agent 08: `sales_intelligence_settings`, `sales_snapshots`, `sales_insights`, `sales_forecast_runs`, `sales_report_runs`, `sales_analyst_queries`, `sales_daily_evaluations`; metric catalogue and compute layer, validated query RPC, overview / breakdown / funnel, forecasts with backtest, reports, deterministic anomalies and findings, recommendation snapshots; cron `sales-intelligence-tick` (SQL). Additive; no existing object changed |
+| `20261025001800_ai_request_guard.sql` | Phase 2 remediation: `ai_requests` (RLS, read with `usage.view`, no client writes); `ai_request_begin` (membership + feature permission, per-user hourly and per-org daily limits under an advisory lock) and `ai_request_finish`; EXECUTE on `set_updated_at` revoked from `public` / `anon` / `authenticated` (trigger-only). Additive. **Apply before redeploying** `appointment-assistant`, `crm-enrichment`, `sales-intelligence-recommend` or `sales-analyst`: their new code refuses requests (503 `guard_unavailable`) until it exists |
+| `20261025001900_pilot_controls.sql` | Phase 4: `agent_controls` (per-workspace agent pause, audited, readable by members) and `agent_control_set` (`agents.manage`). While paused: the agent's outbox events are held (`outbox_claim` replaced with one extra condition), its runs are held (trigger), new voice calls are refused (trigger), and its AI features are refused (`ai_request_begin` replaced, `AGENT_PAUSED`). `pilot_overview` (`logs.view`): tenant-scoped operational summary. Lead intake is not pausable. Additive apart from the two replacements with unchanged signatures |
+| `20261025002000_ops_health_and_usage.sql` | Phase 5: `ops_health()` (service role; aggregate platform signals for the `health` Edge Function); `ai_requests.input_tokens` / `output_tokens`; `ai_request_finish` replaced with two optional token parameters (old calls keep working); `ai_usage_summary(org, from, to)` (`usage.view`) from stored provider usage. Additive otherwise |
+| `20261025002100_health_and_usage_fixes.sql` | Code-review fixes to 0020: `ops_health` ignores events held by a paused agent and flips to degraded only for dead letters from the last 15 minutes; a trigger keeps the token usage of earlier calls when a redraft or explanation retry replaces `follow_ups` / `property_match_runs.model_meta`; `ai_usage_summary` adds it. **Not yet applied to staging** |
+
+## Requirements on the target database
+* Supabase project (Postgres 15+; verified locally on 16 via PGlite, Supabase currently runs 17).
+* Uses only built-ins (`gen_random_uuid`, `sha256`), Supabase `auth`, `storage` and `vault` (Vault is enabled by default on Supabase).
+* **Fresh database only.** The migrations create tables such as `leads`, `properties`, `documents`; they will fail (not overwrite) if those names already exist.
+
+## Applying
+
+### Supabase CLI
+```bash
+supabase link --project-ref <ref>
+supabase db push            # applies pending files in supabase/migrations
+```
+
+### Without the CLI
+Run each file, in order, in the Supabase SQL editor (or through the Supabase MCP `apply_migration` tool, one migration per file, using the file name as the migration name).
+
+### After applying
+* Run the security advisor (Dashboard → Advisors, or MCP `get_advisors`) and confirm no table lacks RLS.
+* Smoke test: sign up, create a workspace, create a lead, book an appointment, open the dashboard.
+
+## Status
+| Environment | State |
+|---|---|
+| Local test DB (PGlite) | **Applied and tested** on every `npm test` run (0001–0018; the cron/pg_net parts are no-ops without those extensions) |
+| Staging ("Estate OS", designated staging 2026-10-26) | **0018 applied 2026-10-26** as `20261026181753` via MCP `apply_migration`. The bodies of `ai_request_begin`, `ai_request_finish` and `private.ai_limits` match a fresh local install (md5); 57 tables, all with RLS; `anon` executes no public function. **0019 applied 2026-10-27**; the 8 new or replaced function bodies match a fresh install (md5); live pause/resume check 11/11 (`frontend/scripts/staging-pilot-controls.mjs`). **0020 applied 2026-10-27**; the 3 function bodies match a fresh install (md5); `ops_health` live `ok` |
+| Production | **Does not exist yet.** Create a separate project and apply 0001–0018 fresh; never promote the staging database |
+| Supabase **"Estate OS"** (`jvdnapofyoarhfctbpyi`, ap-south-1, Postgres 17) | **Applied 0001–0014 on 2026-10-25 and 0015–0017 on 2026-10-26** via MCP `apply_migration`; confirmed with `list_migrations`. The function bodies of 0008 (20), 0010 (25), 0012 (16), 0013 (24), 0014 (39), 0015 (32), 0016 (41) and 0017 (29) were checked byte-for-byte against the files (md5 of `prosrc`). Cron jobs `lead-intake-worker` and `voice-worker` are listed in `cron.job`, and `voice-worker` returned HTTP 200. Applied 0010 still created `pg_net` in `public`; 0011 moved it, and the 0010 file was then corrected for fresh installs. Verified live: 21 public tables after 0007 (25 after 0008), all with RLS; private `documents` bucket; 119 `role_permissions` rows; see `API_IMPLEMENTATION_STATUS.md` → Verification |
+| Supabase "Blaze Estate OS" (`nrvxlcyxsrwzziowbgvl`) | **Untouched, paused** (2026-10-25, at the owner's request, to free a free-plan slot). Holds an older, incompatible schema |
+
+**Note on migration history.** The MCP tool records each migration under its apply time (e.g. `20261025113324_20261025000100_foundation`), not the file's timestamp. Before using `supabase db push` against this project, align the history once with both commands, otherwise the CLI either refuses to push (remote versions missing locally) or tries to re-run the files:
+
+```bash
+supabase migration repair --status reverted 20261025113324 20261025113441 20261025113523 20261025113917 20261025113950 20261025115609 20261025115839 20261025143153 20261025143247 20261025164230 20261025164809 20261025170921 20261025174719 20261025181621 20261025215932 20261025225050 20261026080656
+supabase migration repair --status applied 20261025000100 20261025000200 20261025000300 20261025000400 20261025000500 20261025000600 20261025000700 20261025000800 20261025000900 20261025001000 20261025001100 20261025001200 20261025001300 20261025001400 20261025001500 20261025001600 20261025001700
+```
+
+Then `supabase migration list` should show local and remote matching, and `supabase db push` should report nothing to apply.
+
+### Advisors after applying (2026-10-25)
+* **Security:** remaining warnings are `authenticated_security_definer_function_executable` for the intended signed-in RPCs (`create_organization`, invitations, `merge_leads`, `record_export`, `rotate_webhook_secret`, `has_perm`/`is_org_member`/`org_role`). Each has a fixed `search_path` and an explicit permission check; the anon variant was fixed in 0005.
+* **Performance (INFO only):** 43 foreign keys without a covering index — mostly audit columns (`created_by`, `updated_by`, `approved_by`…) that are never filtered on; add indexes if user deletion or those joins become hot. "Unused index" findings are expected on a new database.
+
+## Rollback / forward-fix
+These are the first migrations, so rollback on a fresh project = drop the project or reset its database. After go-live, fix forward with a new migration; destructive changes (dropping columns/tables, tightening constraints on populated tables) need an explicit plan and backup first.

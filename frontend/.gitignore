@@ -1,0 +1,6 @@
+node_modules
+dist
+.claude
+.env.local
+.env.*.local
+*.local.md
