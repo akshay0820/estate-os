@@ -19,3 +19,6 @@ supabase/.branches/
 .DS_Store
 Thumbs.db
 *.log
+
+# Vercel local link
+.vercel
