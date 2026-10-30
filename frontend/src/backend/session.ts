@@ -168,9 +168,8 @@ export async function updatePassword(password: string) {
 }
 
 export async function createOrganization(name: string, city: string, timezone: string, country = 'US') {
-  const orgId = check(await supabase().rpc('create_organization', { p_name: name, p_city: city, p_timezone: timezone })) as string;
-  // New workspaces default to the US (migration 0024); the owner may set another country straight away.
-  if (country !== 'US') check(await supabase().from('organizations').update({ country_code: country }).eq('id', orgId).select('id'));
+  // One call: a failed second step can no longer leave a workspace behind that a retry would duplicate.
+  const orgId = check(await supabase().rpc('create_organization', { p_name: name, p_city: city, p_timezone: timezone, p_country: country })) as string;
   localStorage.setItem(ORG_KEY, orgId);
   await afterSignIn();
 }

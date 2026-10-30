@@ -79,7 +79,7 @@ export async function createDb(opts: { region?: 'IN' | 'US' } = {}) {
     /** Create an organization owned by `ownerId`. */
     async org(ownerId: string, name: string) {
       const [row] = region === 'IN'
-        ? await api.as<{ id: string }>(ownerId, `select public.create_organization($1, 'Mumbai', 'Asia/Kolkata') as id`, [name])
+        ? await api.as<{ id: string }>(ownerId, `select public.create_organization($1, 'Mumbai', 'Asia/Kolkata', 'IN') as id`, [name])
         : await api.as<{ id: string }>(ownerId, `select public.create_organization($1, 'Austin') as id`, [name]);
       return row.id;
     },

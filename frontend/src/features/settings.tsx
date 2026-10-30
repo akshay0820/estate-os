@@ -44,6 +44,14 @@ export function SettingsPage() {
   const save = async () => {
     if (!f.name.trim()) return toast({ kind: 'error', title: 'Organization name is required' });
     if (!hoursOk) return toast({ kind: 'error', title: 'Check the hours', body: 'Start must be before end.' });
+    const changes = [
+      f.currency !== org.currency && `Currency ${org.currency} → ${f.currency}: amounts already saved keep their number and are not converted. New leads, listings and deals use ${f.currency}, and matching never compares different currencies.`,
+      f.country !== org.country && `Country ${org.country} → ${f.country}: phone numbers saved without a country code are re-read with the new country's code, so duplicate checks keep working.`,
+    ].filter(Boolean) as string[];
+    if (changes.length) {
+      const r = await confirm({ title: 'Change the workspace region?', body: <div className="stack">{changes.map((c) => <p key={c}>{c}</p>)}</div>, confirmLabel: 'Save changes' });
+      if (!r.ok) return;
+    }
     setSaving(true);
     const done = await ok(() => actions.updateOrg(org, { name: f.name.trim(), timezone: f.timezone, currency: f.currency, country: f.country, businessHours: f.businessHours, callingHours: f.callingHours, slaMinutes: f.slaMinutes, assignment: f.assignment, leadStages: f.leadStages }));
     setSaving(false);

@@ -25,7 +25,19 @@ export interface ImportResult {
   duplicates: number;
   invalid: number;
   errors: ImportRowError[];
+  /** True when the person stopped the import; the counts cover the rows sent before that. */
+  cancelled?: boolean;
 }
+
+export interface ImportOptions {
+  /** Rows handled so far out of the rows that will be sent. */
+  onProgress?: (done: number, total: number) => void;
+  /** Set `cancelled` to stop after the batch in flight. */
+  control?: { cancelled: boolean };
+}
+
+/** Rows per server call (import_leads accepts up to 200). */
+export const IMPORT_BATCH = 100;
 
 export const IMPORT_MAX_ROWS = 1000;
 
@@ -124,4 +136,59 @@ export function checkImportHeaders(rows: Record<string, string>[]): string | nul
   if (!cols.name && !cols.firstName) return 'No name column found. Add a column called "Name".';
   if (!cols.phone && !cols.email) return 'No phone or email column found. Add a column called "Phone" or "Email".';
   return null;
+}
+
+/** One row's outcome from the server (import_leads), in the order the rows were sent. */
+export interface ImportRowOutcome {
+  status: string;
+  code?: string | null;
+  message?: string;
+}
+
+/** Permission or session problems fail every row the same way, so the import stops instead of repeating them. */
+export class ImportStopped extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+  }
+}
+
+/**
+ * Checks every row locally, then sends the valid ones in batches of IMPORT_BATCH through `send`, reporting progress and
+ * stopping between batches when asked. Rows that fail the local checks never reach the server.
+ */
+export async function runImport(
+  rows: Record<string, string>[],
+  send: (batch: ImportLeadInput[]) => Promise<ImportRowOutcome[]>,
+  opts: ImportOptions = {},
+): Promise<ImportResult> {
+  const result: ImportResult = { created: 0, duplicates: 0, invalid: 0, errors: [] };
+  const cols = mapHeaders(Object.keys(rows[0] ?? {}));
+  const valid: { row: number; input: ImportLeadInput }[] = [];
+  for (const [i, r] of rows.slice(0, IMPORT_MAX_ROWS).entries()) {
+    const mapped = mapLeadRow(r, cols);
+    if ('error' in mapped) {
+      result.invalid++;
+      result.errors.push({ row: i + 2, reason: mapped.error });
+    } else valid.push({ row: i + 2, input: mapped.input });
+  }
+  opts.onProgress?.(0, valid.length);
+  for (let start = 0; start < valid.length; start += IMPORT_BATCH) {
+    if (opts.control?.cancelled) {
+      result.cancelled = true;
+      break;
+    }
+    const batch = valid.slice(start, start + IMPORT_BATCH);
+    const out = await send(batch.map((b) => b.input));
+    out.forEach((o, k) => {
+      if (o.status === 'created') result.created++;
+      else if (o.status === 'duplicate') result.duplicates++;
+      else {
+        if (o.code === 'FORBIDDEN' || o.code === 'UNAUTHENTICATED' || o.code === 'RATE_LIMITED') throw new ImportStopped(o.code, o.message ?? 'Import stopped');
+        result.invalid++;
+        result.errors.push({ row: batch[k].row, reason: o.message ?? 'Could not be imported' });
+      }
+    });
+    opts.onProgress?.(Math.min(start + IMPORT_BATCH, valid.length), valid.length);
+  }
+  return result;
 }

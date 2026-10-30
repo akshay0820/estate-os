@@ -1,7 +1,7 @@
 // Lead import from spreadsheet exports: CSV parsing and header / value mapping (create_lead does the server checks).
 import { describe, expect, it } from 'vitest';
 import { parseCsv } from '@/lib/util';
-import { checkImportHeaders, cleanPhone, mapHeaders, mapLeadRow, parseBudget } from '@/lib/leadImport';
+import { ImportStopped, checkImportHeaders, cleanPhone, mapHeaders, mapLeadRow, parseBudget, runImport } from '@/lib/leadImport';
 
 const map = (rows: Record<string, string>[]) => {
   const cols = mapHeaders(Object.keys(rows[0]));
@@ -83,5 +83,37 @@ describe('cell values', () => {
   it('cleans spreadsheet phone cells', () => {
     expect(cleanPhone("'9811100010")).toBe('9811100010');
     expect(cleanPhone('9.81110001E+09')).toBe('9811100010');
+  });
+});
+
+describe('runImport (batched upload)', () => {
+  const sheet = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `Lead ${i}`, phone: `98111${String(i).padStart(5, '0')}` }));
+
+  it('sends valid rows in batches of 100, maps results back to sheet rows, and reports progress', async () => {
+    const rows = [...sheet(150), { name: '', phone: '9811199999' }];
+    const sizes: number[] = [];
+    const progress: [number, number][] = [];
+    const r = await runImport(rows, async (batch) => {
+      sizes.push(batch.length);
+      return batch.map((b) => (b.name === 'Lead 120' ? { status: 'error', code: 'VALIDATION_ERROR', message: 'Enter a valid phone number' } : b.name === 'Lead 5' ? { status: 'duplicate' } : { status: 'created' }));
+    }, { onProgress: (d, t) => progress.push([d, t]) });
+    expect(sizes).toEqual([100, 50]);
+    expect(r).toMatchObject({ created: 148, duplicates: 1, invalid: 2 });
+    expect(r.errors).toEqual([{ row: 152, reason: 'Name is missing' }, { row: 122, reason: 'Enter a valid phone number' }]);
+    expect(progress).toEqual([[0, 150], [100, 150], [150, 150]]);
+  });
+
+  it('stops between batches when cancelled, keeping what was imported', async () => {
+    const control = { cancelled: false };
+    const r = await runImport(sheet(250), async (batch) => {
+      control.cancelled = true;
+      return batch.map(() => ({ status: 'created' }));
+    }, { control });
+    expect(r).toMatchObject({ created: 100, cancelled: true });
+  });
+
+  it('stops the whole import on a permission problem', async () => {
+    await expect(runImport(sheet(3), async (batch) => batch.map(() => ({ status: 'error', code: 'FORBIDDEN', message: 'You cannot create leads' }))))
+      .rejects.toBeInstanceOf(ImportStopped);
   });
 });

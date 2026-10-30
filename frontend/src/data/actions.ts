@@ -1,6 +1,7 @@
 // One async API for pages. Live mode calls Supabase; demo mode (no backend configured, explicitly
 // chosen by the user) uses the local sample store. Pages never branch on the mode for writes.
 import * as live from '@/backend/live';
+import type { ImportOptions } from '@/lib/leadImport';
 import { ApiError, toApiError } from '@/backend/errors';
 import { LIVE, useStore } from '@/store/store';
 import { toast } from '@/store/ui';
@@ -53,8 +54,8 @@ export const actions = {
     if (LIVE) return live.addNote(leadId, body);
     s().addNote(leadId, body);
   },
-  async importLeads(rows: Record<string, string>[]) {
-    if (LIVE) return live.importLeads(rows);
+  async importLeads(rows: Record<string, string>[], opts?: ImportOptions) {
+    if (LIVE) return live.importLeads(rows, opts);
     return s().importLeads(rows);
   },
   async updateContact(id: string, patch: { name?: string; phone?: string; email?: string; preferredChannel?: Channel }) {

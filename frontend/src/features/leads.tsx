@@ -92,6 +92,8 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
   const [quick, setQuick] = useState<Quick>('open');
   const [q, setQ] = useState('');
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<{ done: number; total: number } | null>(null);
+  const importControl = useRef({ cancelled: false });
   const [source, setSource] = useState('');
   const [owner, setOwner] = useState('');
   const [status, setStatus] = useState('');
@@ -215,13 +217,15 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
     }
     if (rows.length > IMPORT_MAX_ROWS) toast({ kind: 'warning', title: 'Large file', body: `Only the first ${IMPORT_MAX_ROWS.toLocaleString('en-IN')} rows are imported per file.` });
     setImporting(true);
-    const r = await attempt(() => actions.importLeads(rows)).finally(() => setImporting(false));
+    importControl.current = { cancelled: false };
+    const r = await attempt(() => actions.importLeads(rows, { control: importControl.current, onProgress: (done, total) => setImportProgress({ done, total }) }))
+      .finally(() => { setImporting(false); setImportProgress(null); });
     if (!r) return;
     const why = r.errors.slice(0, 3).map((e) => `Row ${e.row}: ${e.reason}`).join(' · ');
     const more = r.errors.length > 3 ? ` · and ${r.errors.length - 3} more` : '';
     toast({
       kind: r.created ? (r.invalid ? 'warning' : 'success') : 'error',
-      title: `Imported ${r.created} lead${r.created === 1 ? '' : 's'}`,
+      title: `Imported ${r.created} lead${r.created === 1 ? '' : 's'}${r.cancelled ? ' before you stopped the import' : ''}`,
       body: `${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped · ${r.invalid} row${r.invalid === 1 ? '' : 's'} not imported${why ? ` — ${why}${more}` : ''}`,
     });
   };
@@ -249,7 +253,8 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
         actions={
           <>
             <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,text/csv,text/tab-separated-values" hidden onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0]).finally(() => (e.target.value = ''))} />
-            {canImport && <Button icon={<FileUp size={15} />} loading={importing} disabled={importing} onClick={() => fileRef.current?.click()} title="CSV from Google Sheets or Excel with columns such as Name, Phone, Email, Source, Budget, Location">{importing ? 'Importing…' : 'Import'}</Button>}
+            {canImport && <Button icon={<FileUp size={15} />} loading={importing} disabled={importing} onClick={() => fileRef.current?.click()} title="CSV from Google Sheets or Excel with columns such as Name, Phone, Email, Source, Budget, Location">{importing ? (importProgress?.total ? `Importing ${importProgress.done.toLocaleString()} / ${importProgress.total.toLocaleString()}` : 'Importing…') : 'Import'}</Button>}
+            {importing && <Button variant="ghost" onClick={() => { importControl.current.cancelled = true; }} title="Stops after the batch being sent; rows already imported stay">Stop import</Button>}
             {canExport && <Button icon={<Download size={15} />} onClick={() => void exportAll()}>Export</Button>}
             {canEdit && <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>New lead</Button>}
           </>
