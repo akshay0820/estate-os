@@ -253,7 +253,7 @@ export const useStore = create<Store>()(
           if (!contactId) {
             contactId = uid('con');
             const contact: Contact = {
-              id: contactId, orgId: oid, name: input.name.trim(), email: normalizeEmail(input.email), phone: normalizePhone(input.phone),
+              id: contactId, orgId: oid, name: input.name.trim(), email: normalizeEmail(input.email), phone: normalizePhone(input.phone) || input.phone.trim(),
               roles: [input.type], preferredChannel: 'whatsapp', lifecycle: 'new', source: input.source, assignedTo: null,
               consents: { phone: 'granted', whatsapp: 'granted', sms: 'unknown', email: input.email ? 'granted' : 'unknown' },
               tags: [], createdAt: now, lastContactedAt: null,

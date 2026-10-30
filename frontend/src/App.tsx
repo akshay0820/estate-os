@@ -2,7 +2,8 @@ import { lazy, Suspense, type ComponentType } from 'react';
 import { Compass, PlugZap } from 'lucide-react';
 import { Shell } from '@/layout/Shell';
 import { AuthGate } from '@/layout/AuthGate';
-import { LIVE } from '@/store/store';
+import { LIVE, useStore } from '@/store/store';
+import { regionKey } from '@/store/regionSync';
 import { NAV_FLAT } from '@/layout/nav';
 import { ConfirmHost, Toaster } from '@/components/dialogs';
 import { Button, Empty } from '@/components/ui';
@@ -70,6 +71,7 @@ function Routed() {
   const me = useMe();
   const nav = NAV_FLAT.find((n) => n.key === page);
   const Page = PAGES[page];
+  const region = useStore(regionKey);
   const allowed = !nav?.cap || can(me.role, nav.cap);
 
   return (
@@ -85,7 +87,7 @@ function Routed() {
           ) : LIVE && NOT_CONNECTED[page] ? (
             <NotConnected title={nav?.label ?? page} reason={NOT_CONNECTED[page]} />
           ) : (
-            <Page key={page} params={params} />
+            <Page key={`${page}:${region}`} params={params} />
           )}
         </Suspense>
       </Shell>

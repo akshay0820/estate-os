@@ -72,3 +72,20 @@ describe('batch lead import', () => {
     expect((await t.fails(owner, `select public.import_leads($1, $2::jsonb)`, [org, big])).detail).toBe('VALIDATION_ERROR');
   });
 });
+
+// Migration 0027: a phone that does not normalize (an invalid US number) is still matched against the same number.
+describe('duplicate phones that do not normalize', () => {
+  it('reports the same invalid US number as a duplicate, and keeps valid numbers apart from it', async () => {
+    const us = await createDb({ region: 'US' });
+    const o = await us.user('Uma Owner');
+    const g = await us.org(o, 'Bay Homes');
+    const first = await us.lead(o, g, { name: 'Ivy Invalid', phone: '055 123 4567', type: 'buyer' });
+    expect((await us.db.query<{ p: string | null }>(`select phone_e164 p from public.contacts where id = $1`, [first.contact_id])).rows[0].p).toBeNull();
+    const ask = async (phone: string) =>
+      (await us.as<{ r: R }>(o, `select public.create_lead($1, $2::jsonb, 'ask') r`, [g, JSON.stringify({ name: 'Ivy again', phone, type: 'buyer' })]))[0].r;
+    const dup = await ask('(055) 123-4567');
+    expect(dup.status).toBe('duplicate');
+    expect(dup.candidates).toEqual([expect.objectContaining({ contact_id: first.contact_id, reasons: ['Same phone'] })]);
+    expect((await ask('415 555 0134')).status).toBe('created');
+  }, 120000);
+});

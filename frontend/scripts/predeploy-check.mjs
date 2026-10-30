@@ -4,7 +4,6 @@
 //                                          known non-production project (staging refs below or PREDEPLOY_NONPROD_REFS)
 // Exits 1 on any failure. Prints no secret values.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -62,13 +61,26 @@ else {
   }
   leaks.length ? fail(`bundle contains server secrets: ${leaks.join('; ')}`) : ok('bundle contains no server-side secrets');
 
-  // The Content-Security-Policy in vercel.json allows inline scripts only by hash; editing index.html changes the hash.
+  // The Content-Security-Policy allows scripts from 'self' only: any inline <script> (with or without attributes) is blocked.
   const html = readFileSync(join(dist, 'index.html'), 'utf8');
-  const csp = JSON.stringify(JSON.parse(readFileSync(join(FRONT, 'vercel.json'), 'utf8')).headers ?? []);
-  const unlisted = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
-    .map((m) => `'sha256-${createHash('sha256').update(m[1], 'utf8').digest('base64')}'`)
-    .filter((h) => !csp.includes(h));
-  unlisted.length ? fail(`inline script hash not in the vercel.json Content-Security-Policy: ${unlisted.join(', ')}`) : ok('inline scripts allowed by the Content-Security-Policy');
+  const inline = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter((m) => !/\bsrc\s*=/i.test(m[1]) && m[2].trim());
+  inline.length ? fail(`index.html has ${inline.length} inline script(s); the Content-Security-Policy blocks them — move them to a file in public/`) : ok('no inline scripts (the Content-Security-Policy allows scripts from the site only)');
+}
+
+/** The Content-Security-Policy's sources for one directive, from vercel.json. */
+function cspSources(directive) {
+  const headers = (JSON.parse(readFileSync(join(FRONT, 'vercel.json'), 'utf8')).headers ?? []).flatMap((h) => h.headers ?? []);
+  const csp = headers.find((h) => h.key.toLowerCase() === 'content-security-policy')?.value ?? '';
+  const part = csp.split(';').map((x) => x.trim().split(/\s+/)).find(([name]) => name === directive);
+  return part ? part.slice(1) : [];
+}
+/** Whether a CSP source list allows a URL: exact origin, or a scheme://*.domain wildcard. */
+function cspAllows(sources, url) {
+  return sources.some((src) => {
+    const m = src.match(/^(\w+):\/\/(\*\.)?([^/]+)$/);
+    if (!m || `${m[1]}:` !== url.protocol) return false;
+    return m[2] ? url.hostname.endsWith(`.${m[3]}`) : url.host === m[3];
+  });
 }
 
 // 4. Production build target.
@@ -83,6 +95,15 @@ if (production) {
   if (!ref) fail('VITE_SUPABASE_URL missing or invalid for the production build');
   else if (KNOWN_NONPROD_REFS.includes(ref)) fail(`VITE_SUPABASE_URL points at a non-production project (${ref})`);
   else ok(`production build targets project ${ref}`);
+  // A custom Supabase domain (api.example.com) is not covered by https://*.supabase.co: the browser would block every request.
+  if (ref) {
+    const api = new URL(env.VITE_SUPABASE_URL);
+    const realtime = new URL(api.href.replace(/^http/, 'ws'));
+    const sources = cspSources('connect-src');
+    cspAllows(sources, api) && cspAllows(sources, realtime)
+      ? ok(`Content-Security-Policy connect-src allows ${api.host}`)
+      : fail(`Content-Security-Policy connect-src in vercel.json does not allow ${api.protocol}//${api.host} and ${realtime.protocol}//${api.host}; add both`);
+  }
   // The bundle is what ships: it must contain the production project and no non-production one (a stale dist/ fails here).
   if (ref && existsSync(dist)) {
     const js = walk(dist).filter((p) => p.endsWith('.js')).map((p) => readFileSync(p, 'utf8')).join('\n');

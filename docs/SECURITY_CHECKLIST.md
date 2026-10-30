@@ -56,7 +56,7 @@ Status as of 2026-10-25. ✅ done and tested (locally and/or against the live "E
 ## Browser
 * ✅ No `dangerouslySetInnerHTML`; React escaping throughout.
 * ✅ Live mode keeps tenant data in memory only (no `localStorage` persistence).
-* 🟡 Session token in `localStorage` (supabase-js default) → XSS is the main risk. ⬜ Add a strict Content-Security-Policy at the host.
+* 🟡 Session token in `localStorage` (supabase-js default) → XSS is the main risk. ✅ Strict Content-Security-Policy in `frontend/vercel.json` (scripts from the site only, no inline scripts; `npm run predeploy` checks both and that `connect-src` allows `VITE_SUPABASE_URL`). The policy also blocks the Vercel preview toolbar (`vercel.live`): turn the toolbar off for Preview in the Vercel project settings (General → Vercel Toolbar) or set `VERCEL_PREVIEW_FEEDBACK_ENABLED=0` for Preview, rather than widening the policy.
 * ✅ Bearer-token auth (no ambient cookies) → classic CSRF not applicable.
 
 ## Known gaps / follow-ups

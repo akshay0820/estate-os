@@ -120,17 +120,26 @@ export const LOST_REASONS = [
 
 /* ─────────────── Duplicate detection (PRD §8.3) ─────────────── */
 
+/** What two phones are compared by: the normalized number, or for a number that does not normalize, its digits. */
+function phoneKey(raw?: string) {
+  if (!raw) return '';
+  const e164 = normalizePhone(raw);
+  if (e164) return e164;
+  const digits = raw.replace(/\D/g, '');
+  return digits ? `raw:${digits}` : '';
+}
+
 export function findDuplicates(
   input: { phone?: string; email?: string; name?: string },
   contacts: Contact[],
 ): { contact: Contact; reasons: string[] }[] {
-  const phone = input.phone ? normalizePhone(input.phone) : '';
+  const phone = phoneKey(input.phone);
   const email = input.email ? normalizeEmail(input.email) : '';
   const name = input.name?.trim().toLowerCase() ?? '';
   const out: { contact: Contact; reasons: string[] }[] = [];
   for (const c of contacts) {
     const reasons: string[] = [];
-    if (phone && normalizePhone(c.phone) === phone) reasons.push('Same phone');
+    if (phone && phoneKey(c.phone) === phone) reasons.push('Same phone');
     if (email && normalizeEmail(c.email) === email) reasons.push('Same email');
     if (!reasons.length && name && c.name.toLowerCase() === name) reasons.push('Same name');
     if (reasons.length) out.push({ contact: c, reasons });
