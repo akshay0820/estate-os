@@ -66,11 +66,30 @@ export function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
 }
 
-export function normalizePhone(raw: string): string {
+// The active workspace's country, set by the app shell; mirrors private.normalize_phone in the database.
+let phoneCountry = 'US';
+
+export function setPhoneCountry(code: string | null | undefined) {
+  phoneCountry = code || 'US';
+}
+
+export function getPhoneCountry(): string {
+  return phoneCountry;
+}
+
+/** E.164 for comparisons: a number without a country code takes the workspace country's code. */
+export function normalizePhone(raw: string, country = phoneCountry): string {
   const digits = raw.replace(/\D/g, '');
   if (!digits) return '';
-  if (digits.length === 10) return `+91${digits}`;
-  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+  if (/^\s*(\+|00)/.test(raw)) return `+${/^\s*00/.test(raw) ? digits.slice(2) : digits}`;
+  if (country === 'US' || country === 'CA') {
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  }
+  if (country === 'IN') {
+    if (digits.length === 10) return `+91${digits}`;
+    if (digits.length === 11 && digits.startsWith('0')) return `+91${digits.slice(1)}`;
+  }
   return `+${digits}`;
 }
 

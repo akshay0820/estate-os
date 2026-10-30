@@ -1380,6 +1380,8 @@ export async function updateOrg(org: Organization, patch: Partial<Organization>)
   if (patch.name !== undefined) row.name = patch.name;
   if (patch.timezone !== undefined) row.timezone = patch.timezone;
   if (patch.city !== undefined) row.city = patch.city;
+  if (patch.currency !== undefined) row.default_currency = patch.currency;
+  if (patch.country !== undefined) row.country_code = patch.country;
   const saved = checkMaybe(await sb().from('organizations').update(row).eq('id', org.id).select('*').maybeSingle());
   if (!saved) throw new ApiError('FORBIDDEN', 'You can’t change organization settings.');
   const o = toOrganization(saved);

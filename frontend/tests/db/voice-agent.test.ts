@@ -45,7 +45,7 @@ const ended = (providerId: string, extra: R = {}) => ({
 });
 
 beforeAll(async () => {
-  t = await createDb({ currency: 'INR' });
+  t = await createDb();
   owner = await t.user('Aanya Kapoor');
   manager = await t.user('Priya Nair');
   agent = await t.user('Arjun Desai');

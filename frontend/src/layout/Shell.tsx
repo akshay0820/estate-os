@@ -28,11 +28,14 @@ import { can, ROLE_DESC, ROLE_LABEL } from '@/lib/permissions';
 import { navigate } from '@/lib/router';
 import { cx } from '@/lib/util';
 import { relTime, setMoneyCurrency } from '@/lib/format';
+import { setPhoneCountry } from '@/lib/util';
 import type { Role } from '@/store/types';
 
 export function Shell({ page, children }: { page: string; children: ReactNode }) {
   // Set during render, before the pages below format any amount, so a workspace switch never shows the old currency.
-  setMoneyCurrency(useOrg()?.currency);
+  const activeOrg = useOrg();
+  setMoneyCurrency(activeOrg?.currency);
+  setPhoneCountry(activeOrg?.country);
   const collapsed = useUi((s) => s.collapsed);
   const mobileOpen = useUi((s) => s.mobileOpen);
   const setMobileOpen = useUi((s) => s.setMobileOpen);

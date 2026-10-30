@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { COUNTRIES, TIME_ZONES, browserTimeZone, countryForTimeZone } from '@/lib/region';
 import { ArrowRight, Building, Database, Loader2, LogOut, Mail, MailCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button, Field, Input, Select } from '@/components/ui';
 import { backendConfigured } from '@/backend/client';
@@ -228,7 +229,8 @@ function Onboarding() {
   const [invites, setInvites] = useState<Awaited<ReturnType<typeof myInvitations>> | null>(null);
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
-  const [tz, setTz] = useState('Asia/Kolkata');
+  const [tz, setTz] = useState(() => browserTimeZone());
+  const [country, setCountry] = useState(() => countryForTimeZone(browserTimeZone()));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -259,7 +261,7 @@ function Onboarding() {
         setBusy(true);
         setError(null);
         try {
-          await createOrganization(name, city, tz);
+          await createOrganization(name, city, tz, country);
         } catch (err) {
           setError(toApiError(err).message);
         } finally {
@@ -269,10 +271,15 @@ function Onboarding() {
         <h4 className="section-title">New workspace</h4>
         <div className="form-grid">
           <Field label="Agency name" className="full"><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Skyline Realty" autoFocus /></Field>
-          <Field label="City"><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Mumbai" /></Field>
+          <Field label="City"><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" /></Field>
           <Field label="Time zone">
-            <Select value={tz} onChange={(e) => setTz(e.target.value)}>
-              {['Asia/Kolkata', 'Asia/Dubai', 'Asia/Singapore', 'Europe/London'].map((t) => <option key={t}>{t}</option>)}
+            <Select value={tz} onChange={(e) => { setTz(e.target.value); setCountry(countryForTimeZone(e.target.value)); }}>
+              {TIME_ZONES.map((t) => <option key={t}>{t}</option>)}
+            </Select>
+          </Field>
+          <Field label="Country" hint="Sets the code for phone numbers typed without one">
+            <Select value={country} onChange={(e) => setCountry(e.target.value)}>
+              {COUNTRIES.map(([code, name, dial]) => <option key={code} value={code}>{name} ({dial})</option>)}
             </Select>
           </Field>
         </div>

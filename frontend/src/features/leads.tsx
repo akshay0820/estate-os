@@ -58,7 +58,8 @@ import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { CHANNEL_LABEL, findDuplicates, LEAD_FLOW, LEAD_STATUS, LOST_REASONS, matchProperties, OPEN_LEAD, outboundPolicy } from '@/lib/domain';
 import { fmtDateTime, money, relTime, toLocalInput, fromLocalInput, budgetInputUnit, currencySymbol, moneyPrecise } from '@/lib/format';
-import { cx, downloadCsv, parseCsv } from '@/lib/util';
+import { cx, downloadCsv, parseCsv, getPhoneCountry } from '@/lib/util';
+import { phonePlaceholder } from '@/lib/region';
 import { IMPORT_MAX_ROWS, checkImportHeaders } from '@/lib/leadImport';
 import type { Channel, ConsentState, Lead, LeadStatus } from '@/store/types';
 import { CHANNEL_ICON, LeadStatusBadge, MemberChip, PolicyChecks, ScorePill, SortHeader } from './shared';
@@ -591,7 +592,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
               {['buyer', 'tenant', 'investor', 'seller', 'landlord'].map((t) => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}
             </Select>
           </Field>
-          <Field label="Mobile" error={errors.phone}><Input value={f.phone} onChange={set('phone')} invalid={!!errors.phone} placeholder="98200 12345" inputMode="tel" /></Field>
+          <Field label="Mobile" error={errors.phone}><Input value={f.phone} onChange={set('phone')} invalid={!!errors.phone} placeholder={phonePlaceholder(getPhoneCountry())} inputMode="tel" /></Field>
           <Field label="Email" error={errors.email}><Input value={f.email} onChange={set('email')} invalid={!!errors.email} placeholder="name@example.com" type="email" /></Field>
           <Field label="Source">
             <Select value={f.source} onChange={set('source')}>

@@ -16,9 +16,13 @@ export interface DbError {
  * A fresh database with the Supabase shim and every migration applied, plus helpers
  * to run statements as a specific signed-in user (role `authenticated`, RLS enforced).
  */
-/** `currency` sets the default for new workspaces in this database (production default: USD, migration 0023). Suites
- *  that model Indian agencies (+91 phones, lakh budgets, Mumbai localities) ask for INR. */
-export async function createDb(opts: { currency?: string } = {}) {
+/**
+ * `region` picks the defaults for new workspaces in this database. Production defaults to the US (USD, +1 phones,
+ * America/New_York; migrations 0023–0024). Most suites model Indian agencies (+91 phones, lakh budgets, IST hours), so
+ * the harness defaults to 'IN'; pass 'US' to test the production defaults.
+ */
+export async function createDb(opts: { region?: 'IN' | 'US' } = {}) {
+  const region = opts.region ?? 'IN';
   const db = new PGlite();
   await db.exec(readFileSync(SHIM, 'utf8'));
   for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort()) {
@@ -28,7 +32,11 @@ export async function createDb(opts: { currency?: string } = {}) {
       throw new Error(`Migration ${file} failed: ${(e as Error).message}`);
     }
   }
-  if (opts.currency) await db.query(`alter table public.organizations alter column default_currency set default '${opts.currency.replace(/[^A-Z]/g, '')}'`);
+  if (region === 'IN') {
+    await db.exec(`alter table public.organizations alter column default_currency set default 'INR';
+      alter table public.organizations alter column country_code set default 'IN';
+      alter table public.organizations alter column timezone set default 'Asia/Kolkata';`);
+  }
 
   const asRole = async <T>(role: 'authenticated' | 'service_role' | 'anon', userId: string | null, fn: () => Promise<T>): Promise<T> => {
     await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [userId ?? '']);
@@ -70,7 +78,9 @@ export async function createDb(opts: { currency?: string } = {}) {
     },
     /** Create an organization owned by `ownerId`. */
     async org(ownerId: string, name: string) {
-      const [row] = await api.as<{ id: string }>(ownerId, `select public.create_organization($1, 'Mumbai') as id`, [name]);
+      const [row] = region === 'IN'
+        ? await api.as<{ id: string }>(ownerId, `select public.create_organization($1, 'Mumbai', 'Asia/Kolkata') as id`, [name])
+        : await api.as<{ id: string }>(ownerId, `select public.create_organization($1, 'Austin') as id`, [name]);
       return row.id;
     },
     /** Add a member directly (test setup only — production uses invitations). */

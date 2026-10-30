@@ -28,7 +28,7 @@ const setIntake = (o: string, intakeCfg: R) =>
   t.db.query(`update public.organizations set settings = settings || jsonb_build_object('intake', $2::jsonb) where id = $1`, [o, JSON.stringify(intakeCfg)]);
 
 beforeAll(async () => {
-  t = await createDb({ currency: 'INR' });
+  t = await createDb();
   owner = await t.user('Aanya Kapoor');
   manager = await t.user('Priya Nair');
   agentWorli = await t.user('Arjun Desai');

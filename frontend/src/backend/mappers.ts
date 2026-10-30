@@ -322,6 +322,7 @@ export function toOrganization(r: Row): Organization {
     city: r.city ?? '',
     timezone: r.timezone,
     currency: r.default_currency ?? 'USD',
+    country: r.country_code ?? 'US',
     businessHours: { start: s.business_hours?.start ?? 9, end: s.business_hours?.end ?? 20, days: s.business_hours?.days ?? [1, 2, 3, 4, 5, 6] },
     callingHours: { start: s.calling_hours?.start ?? 9, end: s.calling_hours?.end ?? 21 },
     outboundPaused: !!s.outbound_paused,

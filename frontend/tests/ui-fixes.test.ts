@@ -3,6 +3,8 @@
 import { describe, expect, it } from 'vitest';
 import { authMessage } from '@/backend/authMessages';
 import { budgetInputUnit, currencySymbol, money, relTime, setMoneyCurrency } from '@/lib/format';
+import { normalizePhone } from '@/lib/util';
+import { TIME_ZONES, browserTimeZone, countryForTimeZone, phonePlaceholder } from '@/lib/region';
 
 describe('authMessage', () => {
   it('explains a confirmation email that cannot be sent instead of a generic failure', () => {
@@ -52,5 +54,23 @@ describe('money', () => {
     expect(budgetInputUnit()).toEqual({ label: '₹ lakh', multiplier: 1e5 });
     expect(money(900_000, { currency: 'USD' })).toBe('$900K');
     setMoneyCurrency('USD');
+  });
+});
+
+describe('phones and time zones', () => {
+  it('a US workspace reads 10-digit numbers as +1; India keeps +91; a country code always wins', () => {
+    expect(normalizePhone('(415) 555-0134', 'US')).toBe('+14155550134');
+    expect(normalizePhone('1-212-555-0188', 'US')).toBe('+12125550188');
+    expect(normalizePhone('98444 00001', 'IN')).toBe('+919844400001');
+    expect(normalizePhone('+44 20 7946 0958', 'US')).toBe('+442079460958');
+    expect(normalizePhone('0044 20 7946 0958', 'US')).toBe('+442079460958');
+  });
+
+  it('guesses the country from the time zone and offers matching examples', () => {
+    expect(countryForTimeZone('America/Chicago')).toBe('US');
+    expect(countryForTimeZone('America/Toronto')).toBe('CA');
+    expect(countryForTimeZone('Asia/Kolkata')).toBe('IN');
+    expect(phonePlaceholder('US')).toBe('(415) 555-0134');
+    expect(TIME_ZONES).toContain(browserTimeZone());
   });
 });

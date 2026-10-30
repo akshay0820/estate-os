@@ -41,7 +41,7 @@ const ALWAYS = { window: { start: 0, end: 24 }, human_cooldown_hours: 0 };
 let pVerified: string, pUnverified: string;
 
 beforeAll(async () => {
-  t = await createDb({ currency: 'INR' });
+  t = await createDb();
   owner = await t.user('Aanya Kapoor');
   manager = await t.user('Priya Nair');
   agent = await t.user('Arjun Desai');

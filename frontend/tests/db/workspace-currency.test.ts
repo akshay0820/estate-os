@@ -8,7 +8,7 @@ let owner: string, usd: string, inr: string;
 const one = async <T = Record<string, unknown>>(sql: string, params: unknown[] = []) => (await t.db.query<T>(sql, params)).rows[0];
 
 beforeAll(async () => {
-  t = await createDb();
+  t = await createDb({ region: 'US' });
   owner = await t.user('Dana Brooks');
   usd = await t.org(owner, 'Bay Area Homes');
   inr = await t.org(owner, 'Skyline Realty');

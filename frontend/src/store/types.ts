@@ -22,6 +22,8 @@ export interface Organization {
   timezone: string;
   /** ISO 4217 code from organizations.default_currency, e.g. USD or INR. */
   currency: string;
+  /** ISO 3166 code from organizations.country_code; phones without a country code take its dialling code. */
+  country: string;
   businessHours: { start: number; end: number; days: number[] };
   callingHours: { start: number; end: number };
   outboundPaused: boolean;
