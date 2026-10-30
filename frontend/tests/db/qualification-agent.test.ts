@@ -22,7 +22,7 @@ const intake = async (payload: R) => {
 const events = (lead: string, type: string) => rows<R>(`select * from public.outbox_events where record_id = $1 and event_type = $2 and consumer is distinct from 'follow_up_agent'`, [lead, type]);
 
 beforeAll(async () => {
-  t = await createDb();
+  t = await createDb({ currency: 'INR' });
   owner = await t.user('Aanya Kapoor');
   manager = await t.user('Priya Nair');
   agent = await t.user('Arjun Desai');

@@ -67,16 +67,19 @@ const TYPES: Record<string, Lead['type']> = {
   investor: 'investor', invest: 'investor', investment: 'investor',
 };
 
-/** "50 L", "1.5 Cr", "₹ 75,00,000", "2 crore", "80k", "50-60 L" (the top of a range) → rupees; null when blank or unreadable. */
+/**
+ * "$750,000", "750K", "1.2M", "$1.5 million", "50 L", "1.5 Cr", "50-60 L" (the top of a range) → whole units of the
+ * workspace currency (no conversion); null when blank or unreadable.
+ */
 export function parseBudget(raw: string): number | null {
   const s = raw.toLowerCase().replace(/,/g, '').trim();
   const nums = (s.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
   if (!nums.length) return null;
-  const unit = s.match(/(?<=\d|\s)(crores?|cr|lakhs?|lacs?|lac|l|k|thousand|mn|million)\b/)?.[1] ?? '';
+  const unit = s.match(/(?<=\d|\s)(crores?|cr|lakhs?|lacs?|lac|l|k|thousand|m|mm|mn|million)\b/)?.[1] ?? '';
   const mult = /^(crores?|cr)$/.test(unit) ? 1e7
     : /^(lakhs?|lacs?|lac|l)$/.test(unit) ? 1e5
     : /^(k|thousand)$/.test(unit) ? 1e3
-    : /^(mn|million)$/.test(unit) ? 1e6
+    : /^(m|mm|mn|million)$/.test(unit) ? 1e6
     : 1;
   const v = Math.round(Math.max(...nums) * mult);
   return v > 0 ? v : null;

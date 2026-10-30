@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { DAY, HOUR, MIN } from '@/lib/format';
+import { DAY, HOUR, MIN, money } from '@/lib/format';
 import {
   extractRequirements,
   findConflict,
@@ -1010,7 +1010,7 @@ export const useStore = create<Store>()(
         },
         addExpense: (e) => {
           set((s) => ({ expenses: [{ ...e, id: uid('exp'), orgId: orgId() }, ...s.expenses] }));
-          get().log('expense.created', 'expense', null, `${e.vendor} ₹${e.amount}`);
+          get().log('expense.created', 'expense', null, `${e.vendor} ${money(e.amount, { compact: false })}`);
         },
         setExpenseStatus: (id, status) => set((s) => ({ expenses: mapIn(s.expenses, id, (e) => ({ ...e, status })) })),
 

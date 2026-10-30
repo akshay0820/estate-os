@@ -6,7 +6,7 @@ import { useCan, useLookup, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { RUN_STATUS } from '@/lib/domain';
-import { fmtDateTime, inrPrecise, ms, relTime } from '@/lib/format';
+import { fmtDateTime, moneyPrecise, ms, relTime } from '@/lib/format';
 import type { RunStatus } from '@/store/types';
 import { StatusBadge } from './shared';
 
@@ -73,7 +73,7 @@ export function LogsPage({ params }: { params: URLSearchParams }) {
                     <td className="mono" style={{ fontSize: 11.5 }}>{r.trigger}</td>
                     <td>{r.leadId ? leads.get(r.leadId)?.name ?? '—' : '—'}</td>
                     <td className="right num mono" style={{ fontSize: 12 }}>{r.status === 'running' ? '…' : ms(r.durationMs)}</td>
-                    <td className="right num mono" style={{ fontSize: 12 }}>{r.cost ? inrPrecise(r.cost) : '—'}</td>
+                    <td className="right num mono" style={{ fontSize: 12 }}>{r.cost ? moneyPrecise(r.cost) : '—'}</td>
                     <td className="faint">{relTime(r.startedAt)}</td>
                   </tr>
                 ))}
@@ -122,7 +122,7 @@ function RunDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           ['Trigger', <span key="t" className="mono" style={{ fontSize: 12 }}>{r.trigger}</span>],
           ['Duration', r.status === 'running' ? 'Running…' : ms(r.durationMs)],
           ['Tokens', r.tokens ? r.tokens.toLocaleString('en-IN') : '—'],
-          ['Cost', r.cost ? `${inrPrecise(r.cost)} (estimate)` : '—'],
+          ['Cost', r.cost ? `${moneyPrecise(r.cost)} (estimate)` : '—'],
           ['Lead', lead?.name ?? '—'],
         ]} />
         <section>

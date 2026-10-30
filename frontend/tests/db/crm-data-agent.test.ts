@@ -28,7 +28,7 @@ const prop = async (ref: string, o: R = {}) => (await t.as<{ id: string }>(manag
   [org, ref, o.title ?? `Listing ${ref}`, o.type ?? 'apartment', o.listing ?? 'sale', o.price ?? 25000000, o.bedrooms ?? 2, o.area ?? 900, o.addr ?? `${ref} Unique Street`]))[0].id;
 
 beforeAll(async () => {
-  t = await createDb();
+  t = await createDb({ currency: 'INR' });
   owner = await t.user('Aanya Kapoor');
   manager = await t.user('Priya Nair');
   agent = await t.user('Arjun Desai');

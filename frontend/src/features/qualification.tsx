@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { AlertTriangle, Check, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Badge, Button, Input, Select } from '@/components/ui';
 import { toast } from '@/store/ui';
-import { inr, relTime } from '@/lib/format';
+import { money, relTime } from '@/lib/format';
 import type { Tone } from '@/lib/domain';
 import { usePollWhile, useServerQuery } from '@/data/useServerQuery';
 import { ok } from '@/data/actions';
@@ -54,7 +54,7 @@ function show(field: string, v: unknown): string {
   if (field === 'locations' && Array.isArray(v)) return v.join(', ');
   if (field === 'budget' && typeof v === 'object') {
     const b = v as { min: number | null; max: number | null; currency: string };
-    const fmt = (n: number) => (b.currency === 'INR' ? inr(n) : `${b.currency} ${n.toLocaleString()}`);
+    const fmt = (n: number) => money(n, { currency: b.currency });
     return b.min && b.max ? `${fmt(b.min)} – ${fmt(b.max)}` : b.max ? `Up to ${fmt(b.max)}` : b.min ? `From ${fmt(b.min)}` : '—';
   }
   return String(v).replace(/_/g, ' ');

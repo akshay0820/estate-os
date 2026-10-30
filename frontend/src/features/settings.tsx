@@ -10,6 +10,7 @@ import { LEAD_STATUS } from '@/lib/domain';
 import { navigate } from '@/lib/router';
 import type { Organization } from '@/store/types';
 
+const CURRENCIES: [string, string][] = [['USD', 'US Dollar'], ['CAD', 'Canadian Dollar'], ['GBP', 'British Pound'], ['EUR', 'Euro'], ['AED', 'UAE Dirham'], ['INR', 'Indian Rupee']];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const PREF_KEY = 'estate-os:notification-prefs';
 const PREFS = [
@@ -43,7 +44,7 @@ export function SettingsPage() {
     if (!f.name.trim()) return toast({ kind: 'error', title: 'Organization name is required' });
     if (!hoursOk) return toast({ kind: 'error', title: 'Check the hours', body: 'Start must be before end.' });
     setSaving(true);
-    const done = await ok(() => actions.updateOrg(org, { name: f.name.trim(), timezone: f.timezone, businessHours: f.businessHours, callingHours: f.callingHours, slaMinutes: f.slaMinutes, assignment: f.assignment, leadStages: f.leadStages }));
+    const done = await ok(() => actions.updateOrg(org, { name: f.name.trim(), timezone: f.timezone, currency: f.currency, businessHours: f.businessHours, callingHours: f.callingHours, slaMinutes: f.slaMinutes, assignment: f.assignment, leadStages: f.leadStages }));
     setSaving(false);
     if (!done) return;
     toast({ kind: 'success', title: 'Settings saved', body: 'Workflows pick up the new rules on their next step.' });
@@ -69,8 +70,12 @@ export function SettingsPage() {
                 {['Asia/Kolkata', 'Asia/Dubai', 'Asia/Singapore', 'Europe/London'].map((t) => <option key={t}>{t}</option>)}
               </Select>
             </Field>
-            <Field label="Currency" hint="One currency per organization in this release"><Input value="INR · Indian Rupee" disabled /></Field>
-            <Field label="Workspace URL"><Input value={`estateos.in/${f.slug}`} disabled /></Field>
+            <Field label="Currency" hint="Used for every budget, price and deal. Changing it does not convert amounts already saved.">
+              <Select value={f.currency} disabled={!canManage} onChange={(e) => setF({ ...f, currency: e.target.value })}>
+                {CURRENCIES.map(([code, name]) => <option key={code} value={code}>{code} · {name}</option>)}
+              </Select>
+            </Field>
+            <Field label="Workspace ID"><Input value={f.slug} disabled /></Field>
           </div>
         </Card>
 

@@ -20,7 +20,8 @@ export interface Organization {
   slug: string;
   city: string;
   timezone: string;
-  currency: 'INR';
+  /** ISO 4217 code from organizations.default_currency, e.g. USD or INR. */
+  currency: string;
   businessHours: { start: number; end: number; days: number[] };
   callingHours: { start: number; end: number };
   outboundPaused: boolean;

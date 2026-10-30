@@ -35,7 +35,7 @@ const prop = async (user: string, o: R, orgId = org) => {
 };
 
 beforeAll(async () => {
-  t = await createDb();
+  t = await createDb({ currency: 'INR' });
   owner = await t.user('Aanya Kapoor');
   manager = await t.user('Priya Nair');
   agent = await t.user('Arjun Desai');

@@ -16,7 +16,9 @@ export interface DbError {
  * A fresh database with the Supabase shim and every migration applied, plus helpers
  * to run statements as a specific signed-in user (role `authenticated`, RLS enforced).
  */
-export async function createDb() {
+/** `currency` sets the default for new workspaces in this database (production default: USD, migration 0023). Suites
+ *  that model Indian agencies (+91 phones, lakh budgets, Mumbai localities) ask for INR. */
+export async function createDb(opts: { currency?: string } = {}) {
   const db = new PGlite();
   await db.exec(readFileSync(SHIM, 'utf8'));
   for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort()) {
@@ -26,6 +28,7 @@ export async function createDb() {
       throw new Error(`Migration ${file} failed: ${(e as Error).message}`);
     }
   }
+  if (opts.currency) await db.query(`alter table public.organizations alter column default_currency set default '${opts.currency.replace(/[^A-Z]/g, '')}'`);
 
   const asRole = async <T>(role: 'authenticated' | 'service_role' | 'anon', userId: string | null, fn: () => Promise<T>): Promise<T> => {
     await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [userId ?? '']);

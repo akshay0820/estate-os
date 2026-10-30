@@ -4,7 +4,7 @@ import { Badge, Button, Empty, PageHeader, Tabs } from '@/components/ui';
 import { confirm } from '@/components/dialogs';
 import { useStore } from '@/store/store';
 import { useCan, useLookup, useOrgList } from '@/store/hooks';
-import { fmtDateTime, inr, relTime } from '@/lib/format';
+import { fmtDateTime, money, relTime } from '@/lib/format';
 import type { Approval } from '@/store/types';
 
 const RISK = { low: 'neutral', medium: 'warning', high: 'danger', critical: 'danger' } as const;
@@ -21,7 +21,7 @@ export function ApprovalsPage() {
   const detail = (a: Approval) => {
     const p = a.payload;
     if (p.kind === 'send_message') return <div className="tl-body" style={{ whiteSpace: 'pre-wrap' }}>{p.body}</div>;
-    if (p.kind === 'deal_stage') { const d = deals.get(p.dealId); return <div className="tl-body">{d?.title} · {inr(d?.value)} → <b>{p.to.replace(/_/g, ' ')}</b></div>; }
+    if (p.kind === 'deal_stage') { const d = deals.get(p.dealId); return <div className="tl-body">{d?.title} · {money(d?.value)} → <b>{p.to.replace(/_/g, ' ')}</b></div>; }
     if (p.kind === 'book_appointment') return <div className="tl-body">{leads.get(p.leadId)?.name} · {fmtDateTime(p.start)}</div>;
     if (p.kind === 'bulk_export' && p.rows) return <div className="tl-body">{p.rows.toLocaleString('en-IN')} rows of <b>{p.entity}</b> including contact details. Download link expires in 15 minutes.</div>;
     return null;

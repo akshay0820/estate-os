@@ -7,7 +7,7 @@ import { useCan, useLookup, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { DEAL_STAGES, LOST_REASONS } from '@/lib/domain';
-import { DAY, fmtDate, fromLocalInput, inr, relTime } from '@/lib/format';
+import { DAY, fmtDate, fromLocalInput, money, relTime, currencySymbol } from '@/lib/format';
 import { cx } from '@/lib/util';
 import type { DealStage } from '@/store/types';
 import { MemberChip } from './shared';
@@ -41,7 +41,7 @@ export function DealsPage({ params }: { params: URLSearchParams }) {
       reason = r.value;
     }
     if (stage === 'won') {
-      const r = await confirm({ title: 'Close as won?', body: `${inr(d.value)} · commission estimate ${inr((d.value * d.commissionPct) / 100)} goes to finance for approval. The property is marked ${'sold/let'}.`, confirmLabel: 'Close won' });
+      const r = await confirm({ title: 'Close as won?', body: `${money(d.value)} · commission estimate ${money((d.value * d.commissionPct) / 100)} goes to finance for approval. The property is marked ${'sold/let'}.`, confirmLabel: 'Close won' });
       if (!r.ok) return;
     }
     if (!(await ok(() => actions.moveDeal(id, stage, reason)))) return;
@@ -62,9 +62,9 @@ export function DealsPage({ params }: { params: URLSearchParams }) {
         }
       />
       <div className="grid g-kpi" style={{ marginBottom: 16 }}>
-        <Stat label="Pipeline value" value={inr(pipeline)} icon={<Handshake size={14} />} note={`${open.length} open`} />
-        <Stat label="Weighted commission" value={inr(weighted)} icon={<TrendingUp size={14} />} note="By stage probability" />
-        <Stat label="Won · last 90 days" value={inr(won90.reduce((s, d) => s + d.value, 0))} icon={<Trophy size={14} />} note={`${won90.length} deals`} />
+        <Stat label="Pipeline value" value={money(pipeline)} icon={<Handshake size={14} />} note={`${open.length} open`} />
+        <Stat label="Weighted commission" value={money(weighted)} icon={<TrendingUp size={14} />} note="By stage probability" />
+        <Stat label="Won · last 90 days" value={money(won90.reduce((s, d) => s + d.value, 0))} icon={<Trophy size={14} />} note={`${won90.length} deals`} />
         <Stat label="Stalled > 14 days" value={String(stalled.length)} icon={<CalendarClock size={14} />} note="No stage change" warn={stalled.length > 0} />
       </div>
       <div className="kanban">
@@ -81,14 +81,14 @@ export function DealsPage({ params }: { params: URLSearchParams }) {
               <div className="kb-head">
                 {st.label}
                 <span className="count">{list.length}</span>
-                <span className="sum">{inr(list.reduce((s, d) => s + d.value, 0))}</span>
+                <span className="sum">{money(list.reduce((s, d) => s + d.value, 0))}</span>
               </div>
               <div className="kb-list">
                 {list.map((d) => (
                   <button key={d.id} className="kb-card" draggable={canEdit} onDragStart={(e) => e.dataTransfer.setData('text/plain', d.id)} onClick={() => setParam('id', d.id)}>
                     <div className="kb-title">{d.title}</div>
                     <div className="row mt-8" style={{ gap: 6 }}>
-                      <b className="num" style={{ fontSize: 14 }}>{inr(d.value)}</b>
+                      <b className="num" style={{ fontSize: 14 }}>{money(d.value)}</b>
                       <span className="faint" style={{ fontSize: 12 }}>· {d.commissionPct === 100 ? '1 mo rent' : `${d.commissionPct}%`}</span>
                     </div>
                     <div className="kb-meta">
@@ -166,10 +166,10 @@ export function DealModal({ onClose, preset }: { onClose: () => void; preset?: {
         <Field label="Property" className="full">
           <Select value={f.propertyId} onChange={(e) => { const p = properties.find((x) => x.id === e.target.value); setF({ ...f, propertyId: e.target.value, value: p ? String(p.price) : f.value, commissionPct: p?.listing === 'rent' ? '100' : f.commissionPct }); }}>
             <option value="">Not decided yet</option>
-            {properties.filter((p) => ['active', 'under_offer', 'reserved'].includes(p.status)).map((p) => <option key={p.id} value={p.id}>{p.ref} · {p.title} · {inr(p.price)}</option>)}
+            {properties.filter((p) => ['active', 'under_offer', 'reserved'].includes(p.status)).map((p) => <option key={p.id} value={p.id}>{p.ref} · {p.title} · {money(p.price)}</option>)}
           </Select>
         </Field>
-        <Field label="Expected value (₹)"><Input value={f.value} onChange={(e) => setF({ ...f, value: e.target.value.replace(/[^\d]/g, '') })} inputMode="numeric" placeholder={prop ? String(prop.price) : ''} /></Field>
+        <Field label={`Expected value (${currencySymbol()})`}><Input value={f.value} onChange={(e) => setF({ ...f, value: e.target.value.replace(/[^\d]/g, '') })} inputMode="numeric" placeholder={prop ? String(prop.price) : ''} /></Field>
         <Field label="Commission %" hint={f.commissionPct === '100' ? 'Rental: one month’s rent' : undefined}><Input value={f.commissionPct} onChange={(e) => setF({ ...f, commissionPct: e.target.value })} inputMode="decimal" /></Field>
         <Field label="Stage">
           <Select value={f.stage} onChange={(e) => setF({ ...f, stage: e.target.value as DealStage })}>
@@ -242,8 +242,8 @@ function DealDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           ))}
         </div>
         <KV items={[
-          ['Value', <b key="v" className="num">{inr(d.value, { compact: false })}</b>],
-          ['Commission', <span key="c">{d.commissionPct === 100 ? 'One month’s rent' : `${d.commissionPct}%`} · {inr((d.value * d.commissionPct) / 100)}{com && <Badge tone="info">{com.status}</Badge>}</span>],
+          ['Value', <b key="v" className="num">{money(d.value, { compact: false })}</b>],
+          ['Commission', <span key="c">{d.commissionPct === 100 ? 'One month’s rent' : `${d.commissionPct}%`} · {money((d.value * d.commissionPct) / 100)}{com && <Badge tone="info">{com.status}</Badge>}</span>],
           ['Expected close', canEdit && !closed ? <Input key="e" type="date" inputSize="sm" style={{ width: 170 }} value={new Date(d.expectedClose).toISOString().slice(0, 10)} onChange={(e) => { const v = e.target.value; if (v) void ok(() => actions.updateDeal(d.id, { expectedClose: fromLocalInput(v + 'T12:00') })); }} /> : fmtDate(d.expectedClose, true)],
           ['Lead', lead ? <button key="l" className="link" onClick={() => navigate('leads', { id: lead.id })}>{lead.name}</button> : '—'],
           ['Property', prop ? <button key="p" className="link" onClick={() => navigate('properties', { id: prop.id })}>{prop.title}</button> : <span className="faint">Not linked</span>],

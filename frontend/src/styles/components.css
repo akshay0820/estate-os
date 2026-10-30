@@ -2329,7 +2329,7 @@ button.list-row:hover {
 }
 
 [data-theme='dark'] .thread-body {
-  background: #0d0c0b;
+  background: #080808;
 }
 
 .msg {
@@ -2892,9 +2892,7 @@ button.list-row:hover {
   justify-content: center;
   padding: 32px 16px;
   gap: 20px;
-  background:
-    radial-gradient(900px 400px at 50% -10%, color-mix(in srgb, var(--ember) 9%, transparent), transparent 70%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .auth-brand {

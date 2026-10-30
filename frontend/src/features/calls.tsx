@@ -6,7 +6,7 @@ import { useCan, useLookup, useOrg, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { CALL_STATUS, outboundPolicy } from '@/lib/domain';
-import { duration, fmtDateTime, inrPrecise, pct, relTime } from '@/lib/format';
+import { duration, fmtDateTime, moneyPrecise, pct, relTime, currencySymbol, money } from '@/lib/format';
 import { downloadCsv } from '@/lib/util';
 import { PolicyChecks, StatusBadge } from './shared';
 import { LIVE } from '@/data/actions';
@@ -57,7 +57,7 @@ function DemoCallsPage({ params }: { params: URLSearchParams }) {
         sub="AI and manual calls with outcomes, summaries and cost. Every call passes consent, calling-hour and suppression checks right before dialing."
         actions={
           <>
-            <Button icon={<Download size={15} />} onClick={() => { downloadCsv('calls.csv', [['Lead', 'Direction', 'By', 'Status', 'Started', 'Duration (s)', 'Cost (₹)', 'Outcome'], ...filtered.map((c) => [c.leadId ? leads.get(c.leadId)?.name : '', c.direction, c.agentId ? 'AI' : 'Human', c.status, new Date(c.startedAt).toISOString(), c.duration, c.cost, c.outcome])]); toast({ kind: 'success', title: 'Call log exported' }); }}>Export</Button>
+            <Button icon={<Download size={15} />} onClick={() => { downloadCsv('calls.csv', [['Lead', 'Direction', 'By', 'Status', 'Started', 'Duration (s)', `Cost (${currencySymbol()})`, 'Outcome'], ...filtered.map((c) => [c.leadId ? leads.get(c.leadId)?.name : '', c.direction, c.agentId ? 'AI' : 'Human', c.status, new Date(c.startedAt).toISOString(), c.duration, c.cost, c.outcome])]); toast({ kind: 'success', title: 'Call log exported' }); }}>Export</Button>
             {canCall && <Button variant="accent" icon={<PhoneCall size={15} />} onClick={() => setDialing(true)}>New AI call</Button>}
           </>
         }
@@ -66,7 +66,7 @@ function DemoCallsPage({ params }: { params: URLSearchParams }) {
         <Mini icon={<PhoneOutgoing size={14} />} label="Calls · 30 days" value={last30.length.toLocaleString('en-IN')} sub={`${last30.filter((c) => c.agentId).length} by AI`} />
         <Mini icon={<PhoneIncoming size={14} />} label="Connect rate" value={pct(connected.length / (last30.length || 1), 0)} sub={`${last30.filter((c) => c.status === 'no_answer').length} unanswered`} />
         <Mini icon={<Timer size={14} />} label="Avg talk time" value={duration(Math.round(talk / (connected.length || 1)))} sub={`${Math.round(talk / 3600)} h total`} />
-        <Mini icon={<CircleDollarSign size={14} />} label="Telephony + AI cost" value={inrPrecise(cost)} sub="Estimated · provider-reported" />
+        <Mini icon={<CircleDollarSign size={14} />} label="Telephony + AI cost" value={moneyPrecise(cost)} sub="Estimated · provider-reported" />
       </div>
       <div className="card">
         <div style={{ padding: '4px 14px 0' }}>
@@ -102,7 +102,7 @@ function DemoCallsPage({ params }: { params: URLSearchParams }) {
                     <td><StatusBadge map={CALL_STATUS} value={c.status} /></td>
                     <td className="truncate" style={{ maxWidth: 220 }}>{c.outcome ?? c.policyNote ?? <span className="faint">—</span>}</td>
                     <td className="right num">{c.duration ? duration(c.duration) : '—'}</td>
-                    <td className="right num">{c.cost ? inrPrecise(c.cost) : '—'}</td>
+                    <td className="right num">{c.cost ? moneyPrecise(c.cost) : '—'}</td>
                     <td className="faint">{relTime(c.startedAt)}</td>
                   </tr>
                 ))}
@@ -187,7 +187,7 @@ function CallDrawer({ id, onClose }: { id: string; onClose: () => void }) {
         <KV items={[
           ['Handled by', c.agentId ? <span key="a" className="row"><Bot size={13} /> {agents.get(c.agentId)?.name ?? 'AI agent'}</span> : 'Team member'],
           ['Duration', c.duration ? duration(c.duration) : '—'],
-          ['Cost', c.cost ? `${inrPrecise(c.cost)} (estimate)` : '—'],
+          ['Cost', c.cost ? `${moneyPrecise(c.cost)} (estimate)` : '—'],
           ['Outcome', c.outcome ?? '—'],
           ['Provider ID', <span key="p" className="mono faint" style={{ fontSize: 12 }}>{c.id.replace('call_', 'CA')}</span>],
         ]} />
@@ -205,7 +205,7 @@ function CallDrawer({ id, onClose }: { id: string; onClose: () => void }) {
               {Object.entries(c.extracted).map(([k, v]) => (
                 <div key={k} className="list-row" style={{ padding: '9px 14px' }}>
                   <span className="mono faint grow" style={{ fontSize: 12 }}>{k}</span>
-                  <span style={{ color: v === 'unknown' ? 'var(--text-3)' : undefined }}>{v === 'unknown' ? 'unknown (not guessed)' : k === 'budget' ? `₹${Number(v).toLocaleString('en-IN')}` : v}</span>
+                  <span style={{ color: v === 'unknown' ? 'var(--text-3)' : undefined }}>{v === 'unknown' ? 'unknown (not guessed)' : k === 'budget' ? money(Number(v), { compact: false }) : v}</span>
                 </div>
               ))}
             </div>

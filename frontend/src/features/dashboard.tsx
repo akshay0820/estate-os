@@ -24,7 +24,7 @@ import { useCan, useLookup, useMe, useOrg, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate } from '@/lib/router';
 import { buckets, change, countIn, inWindow, median, windowOf, type RangeKey } from '@/lib/metrics';
-import { DAY, fmtTime, inr, pct, relTime, sameDay, startOfDay } from '@/lib/format';
+import { DAY, fmtTime, money, pct, relTime, sameDay, startOfDay } from '@/lib/format';
 import { downloadCsv } from '@/lib/util';
 import { LIVE } from '@/store/store';
 import { useServerQuery } from '@/data/useServerQuery';
@@ -257,8 +257,8 @@ export function Dashboard() {
     { key: 'qual', label: 'Qualified', icon: <Target size={14} />, value: v.qual, prev: v.prevQual, spark: v.qualSeries, def: 'Leads created in the period that reached Qualified or a later stage.', to: 'leads' },
     { key: 'appt', label: 'Viewings booked', icon: <CalendarCheck size={14} />, value: v.viewings, prev: v.prevViewings, spark: v.apptSeries, def: 'Viewing appointments created in the period (any status).', to: 'appointments' },
     { key: 'conv', label: 'Lead → visit', icon: <ArrowUpRight size={14} />, value: v.conv, prev: v.prevConv, fmt: (v: number) => pct(v), def: 'Share of new leads in the period with a non-cancelled appointment.', to: 'reports' },
-    { key: 'deals', label: 'Active deals', icon: <Handshake size={14} />, value: v.activeDeals, prev: v.activeDeals - v.newDeals + v.prevDeals, spark: undefined, sub: inr(v.pipeline) + ' pipeline', def: 'Deals not in Won or Lost right now. Delta compares deals opened this period vs last.', to: 'deals' },
-    { key: 'won', label: 'Won value', icon: <Trophy size={14} />, value: v.wonValue, prev: v.prevWonValue, spark: v.wonSeries, bars: true, fmt: (v: number) => inr(v), def: 'Sum of deal value for deals moved to Won in the period. Not commission or cash received.', to: 'deals' },
+    { key: 'deals', label: 'Active deals', icon: <Handshake size={14} />, value: v.activeDeals, prev: v.activeDeals - v.newDeals + v.prevDeals, spark: undefined, sub: money(v.pipeline) + ' pipeline', def: 'Deals not in Won or Lost right now. Delta compares deals opened this period vs last.', to: 'deals' },
+    { key: 'won', label: 'Won value', icon: <Trophy size={14} />, value: v.wonValue, prev: v.prevWonValue, spark: v.wonSeries, bars: true, fmt: (v: number) => money(v), def: 'Sum of deal value for deals moved to Won in the period. Not commission or cash received.', to: 'deals' },
   ];
 
   if (LIVE && !metrics.data) {

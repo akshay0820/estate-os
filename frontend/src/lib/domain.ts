@@ -11,7 +11,7 @@ import type {
   Property,
   RunStatus,
 } from '@/store/types';
-import { DAY, inr } from './format';
+import { DAY, money } from './format';
 import { normalizeEmail, normalizePhone } from './util';
 
 export type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent' | 'solid';
@@ -209,7 +209,7 @@ export function matchProperties(lead: Lead, properties: Property[], now = Date.n
     const gaps: string[] = [];
     let score = 40;
     if (lead.budgetMax) {
-      reasons.push(`Within budget (${inr(p.price)} of ${inr(lead.budgetMax)})`);
+      reasons.push(`Within budget (${money(p.price)} of ${money(lead.budgetMax)})`);
       score += 15;
     }
     if (lead.locations.length) {
@@ -361,10 +361,12 @@ const LOCALITY_WORDS = [
 export function extractRequirements(text: string) {
   const fields: Record<string, string> = {};
   const lower = text.toLowerCase();
-  const budget = lower.match(/(\d+(?:\.\d+)?)\s*(cr|crore|l|lakh|lac)/);
+  const budget = lower.match(/(\d+(?:\.\d+)?)\s*(crore|cr|lakh|lac|l|million|m|k)\b/);
   if (budget) {
     const n = parseFloat(budget[1]);
-    fields.budget = /^c/.test(budget[2]) ? String(Math.round(n * 1e7)) : String(Math.round(n * 1e5));
+    const unit = budget[2];
+    const mult = /^c/.test(unit) ? 1e7 : /^l/.test(unit) ? 1e5 : /^m/.test(unit) ? 1e6 : 1e3;
+    fields.budget = String(Math.round(n * mult));
   }
   const bhk = lower.match(/(\d)\s*bhk/);
   if (bhk) fields.bedrooms = bhk[1];

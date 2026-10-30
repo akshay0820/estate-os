@@ -73,6 +73,9 @@ describe('cell values', () => {
     expect(parseBudget('50-60 L')).toBe(6_000_000);
     expect(parseBudget('₹ 75,00,000')).toBe(7_500_000);
     expect(parseBudget('80k')).toBe(80_000);
+    expect(parseBudget('$750,000')).toBe(750_000);
+    expect(parseBudget('1.2M')).toBe(1_200_000);
+    expect(parseBudget('$1.5 million')).toBe(1_500_000);
     expect(parseBudget('')).toBeNull();
     expect(parseBudget('negotiable')).toBeNull();
   });

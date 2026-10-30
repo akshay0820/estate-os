@@ -6,7 +6,7 @@ import { useCan, useLookup, useMe, useOrg, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { CHANNEL_LABEL, outboundPolicy } from '@/lib/domain';
-import { fmtTime, inr, relTime, sameDay } from '@/lib/format';
+import { fmtTime, money, relTime, sameDay } from '@/lib/format';
 import { cx } from '@/lib/util';
 import type { Conversation, Message } from '@/store/types';
 import { CHANNEL_ICON, LeadStatusBadge, MemberChip } from './shared';
@@ -282,7 +282,7 @@ function SidePanel({ conv }: { conv: Conversation }) {
           <h4 className="section-title">Lead</h4>
           <KV items={[
             ['Status', <LeadStatusBadge key="s" status={lead.status} />],
-            ['Budget', lead.budgetMax ? inr(lead.budgetMax) : <span className="faint">Unknown</span>],
+            ['Budget', lead.budgetMax ? money(lead.budgetMax) : <span className="faint">Unknown</span>],
             ['Looking in', lead.locations.join(', ') || <span className="faint">Unknown</span>],
             ['Owner', <MemberChip key="o" id={lead.assignedTo} />],
           ]} />
@@ -309,7 +309,7 @@ function SidePanel({ conv }: { conv: Conversation }) {
               <button key={p.id} className="card list-row" style={{ boxShadow: 'none', padding: 10 }} onClick={() => navigate('properties', { id: p.id })}>
                 <div className="grow" style={{ minWidth: 0 }}>
                   <div className="truncate" style={{ fontSize: 13, fontWeight: 500 }}>{p.title}</div>
-                  <div className="faint" style={{ fontSize: 12 }}>{inr(p.price)} · {p.locality}</div>
+                  <div className="faint" style={{ fontSize: 12 }}>{money(p.price)} · {p.locality}</div>
                 </div>
               </button>
             ))}

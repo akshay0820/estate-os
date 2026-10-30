@@ -7,7 +7,7 @@ import { useCan, useLookup, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { matchProperties, STALE_AFTER, type Tone } from '@/lib/domain';
-import { fmtDate, inr, relTime } from '@/lib/format';
+import { fmtDate, money, relTime, currencySymbol, moneyCurrency } from '@/lib/format';
 import { cx } from '@/lib/util';
 import { AMENITIES } from '@/store/seed';
 import type { Property } from '@/store/types';
@@ -57,7 +57,7 @@ export function PropertiesPage({ params }: { params: URLSearchParams }) {
   const localities = useMemo(() => [...new Set(properties.map((p) => p.locality))].sort(), [properties]);
   const filtered = useMemo(() => {
     const term = q.toLowerCase();
-    const max = maxPrice ? Number(maxPrice) * (listing === 'rent' ? 1000 : 1e5) : Infinity;
+    const max = maxPrice ? Number(maxPrice) * (listing === 'rent' || moneyCurrency() !== 'INR' ? 1000 : 1e5) : Infinity;
     return properties
       .filter((p) => (status ? p.status === status : p.status !== 'archived') && (!listing || p.listing === listing) && (!locality || p.locality === locality) && (!beds || p.bedrooms === Number(beds)) && p.price <= max && (!verifiedOnly || (p.verified && p.verifiedAt && Date.now() - p.verifiedAt < STALE_AFTER)) && (!term || p.title.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term) || p.locality.toLowerCase().includes(term)))
       .sort((a, b) => (sort === 'new' ? b.createdAt - a.createdAt : sort === 'price_asc' ? a.price - b.price : b.price - a.price));
@@ -100,7 +100,7 @@ export function PropertiesPage({ params }: { params: URLSearchParams }) {
             <option value="">Any BHK</option>
             {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} BHK</option>)}
           </Select>
-          <Input inputSize="sm" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={listing === 'rent' ? 'Max rent (₹k)' : 'Max price (₹L)'} style={{ width: 130 }} aria-label="Maximum price" />
+          <Input inputSize="sm" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder={listing === 'rent' || moneyCurrency() !== 'INR' ? `Max ${listing === 'rent' ? 'rent' : 'price'} (${currencySymbol()}K)` : `Max price (${currencySymbol()}L)`} style={{ width: 130 }} aria-label="Maximum price" />
           <label className="check" style={{ fontSize: 12.5 }}><input type="checkbox" checked={verifiedOnly} onChange={(e) => setVerifiedOnly(e.target.checked)} /> Verified only</label>
           <Select selectSize="sm" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} style={{ width: 150 }} className="ml-auto" aria-label="Sort">
             <option value="new">Newest first</option>
@@ -128,7 +128,7 @@ export function PropertiesPage({ params }: { params: URLSearchParams }) {
                   </div>
                   <div className="prop-body">
                     <div className="row row-between">
-                      <span className="prop-price num">{inr(p.price)}{p.listing === 'rent' && <span className="faint" style={{ fontSize: 13, fontWeight: 400 }}>/mo</span>}</span>
+                      <span className="prop-price num">{money(p.price)}{p.listing === 'rent' && <span className="faint" style={{ fontSize: 13, fontWeight: 400 }}>/mo</span>}</span>
                       <span className="mono faint" style={{ fontSize: 11 }}>{p.ref}</span>
                     </div>
                     <div className="truncate" style={{ fontWeight: 500 }}>{p.title}</div>
@@ -163,7 +163,7 @@ export function PropertiesPage({ params }: { params: URLSearchParams }) {
                     <tr key={p.id} className="clickable" onClick={() => setParam('id', p.id)}>
                       <td><div className="cell-title truncate" style={{ maxWidth: 260 }}>{p.title}</div><div className="cell-sub mono">{p.ref}</div></td>
                       <td><Badge tone={STATUS[p.status].tone} dot>{STATUS[p.status].label}</Badge></td>
-                      <td className="right num">{inr(p.price)}{p.listing === 'rent' ? '/mo' : ''}</td>
+                      <td className="right num">{money(p.price)}{p.listing === 'rent' ? '/mo' : ''}</td>
                       <td>{p.bedrooms ? `${p.bedrooms} BHK` : p.type} · {p.area.toLocaleString('en-IN')} ft²</td>
                       <td>{p.locality}</td>
                       <td><Badge tone={f.tone}>{f.label}</Badge></td>
@@ -253,9 +253,9 @@ function PropertyDrawer({ id, onClose, onEdit }: { id: string; onClose: () => vo
           <div className="banner warning"><ShieldAlert size={15} /> Availability isn't recently verified. Agents will describe this listing as “to be confirmed” and won't promise a viewing slot until it's re-verified.</div>
         )}
         <div className="grid g-3" style={{ gap: 10 }}>
-          <div className="card" style={{ padding: 14, boxShadow: 'none' }}><div className="faint" style={{ fontSize: 12 }}>{p.listing === 'rent' ? 'Rent' : 'Price'}</div><div className="kpi-value" style={{ fontSize: 22, marginTop: 4 }}>{inr(p.price)}{p.listing === 'rent' && <span className="faint" style={{ fontSize: 13 }}>/mo</span>}</div></div>
+          <div className="card" style={{ padding: 14, boxShadow: 'none' }}><div className="faint" style={{ fontSize: 12 }}>{p.listing === 'rent' ? 'Rent' : 'Price'}</div><div className="kpi-value" style={{ fontSize: 22, marginTop: 4 }}>{money(p.price)}{p.listing === 'rent' && <span className="faint" style={{ fontSize: 13 }}>/mo</span>}</div></div>
           <div className="card" style={{ padding: 14, boxShadow: 'none' }}><div className="faint" style={{ fontSize: 12 }}>Carpet area</div><div className="kpi-value" style={{ fontSize: 22, marginTop: 4 }}>{p.area.toLocaleString('en-IN')} ft²</div></div>
-          <div className="card" style={{ padding: 14, boxShadow: 'none' }}><div className="faint" style={{ fontSize: 12 }}>{p.listing === 'sale' ? 'Per sq ft' : 'Configuration'}</div><div className="kpi-value" style={{ fontSize: 22, marginTop: 4 }}>{p.listing === 'sale' ? `₹${Math.round(p.price / p.area).toLocaleString('en-IN')}` : p.bedrooms ? `${p.bedrooms} BHK` : p.type}</div></div>
+          <div className="card" style={{ padding: 14, boxShadow: 'none' }}><div className="faint" style={{ fontSize: 12 }}>{p.listing === 'sale' ? 'Per sq ft' : 'Configuration'}</div><div className="kpi-value" style={{ fontSize: 22, marginTop: 4 }}>{p.listing === 'sale' ? money(p.price / p.area, { compact: false }) : p.bedrooms ? `${p.bedrooms} BHK` : p.type}</div></div>
         </div>
         <p style={{ color: 'var(--text-2)' }}>{p.description}</p>
         <KV items={[
@@ -337,7 +337,7 @@ function PropertyForm({ property, onClose }: { property?: Property; onClose: () 
         <Field label="Title" className="full" error={errors.title}><Input value={f.title} onChange={set('title')} invalid={!!errors.title} placeholder="3 BHK at Lodha Park" data-autofocus /></Field>
         <Field label="Listing"><Select value={f.listing} onChange={set('listing')}><option value="sale">For sale</option><option value="rent">For rent</option></Select></Field>
         <Field label="Type"><Select value={f.type} onChange={set('type')}>{['apartment', 'villa', 'penthouse', 'plot', 'office', 'retail'].map((t) => <option key={t}>{t}</option>)}</Select></Field>
-        <Field label={f.listing === 'rent' ? 'Rent (₹ / month)' : 'Price (₹)'} error={errors.price}><Input value={f.price} onChange={(e) => setF({ ...f, price: e.target.value.replace(/[^\d]/g, '') })} invalid={!!errors.price} inputMode="numeric" placeholder={f.listing === 'rent' ? '85000' : '24500000'} /></Field>
+        <Field label={f.listing === 'rent' ? `Rent (${currencySymbol()} / month)` : `Price (${currencySymbol()})`} error={errors.price}><Input value={f.price} onChange={(e) => setF({ ...f, price: e.target.value.replace(/[^\d]/g, '') })} invalid={!!errors.price} inputMode="numeric" placeholder={f.listing === 'rent' ? '85000' : '24500000'} /></Field>
         <Field label="Status"><Select value={f.status} onChange={set('status')}>{Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</Select></Field>
         <Field label="Bedrooms"><Select value={f.bedrooms} onChange={set('bedrooms')}>{[0, 1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n || 'N/A'}</option>)}</Select></Field>
         <Field label="Bathrooms"><Select value={f.bathrooms} onChange={set('bathrooms')}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</Select></Field>

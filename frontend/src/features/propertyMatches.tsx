@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { AlertTriangle, Building2, Check, Flag, RefreshCw, RotateCcw, Share2, Star, X } from 'lucide-react';
 import { Badge, Button, Empty, Input } from '@/components/ui';
 import { toast } from '@/store/ui';
-import { inr, relTime } from '@/lib/format';
+import { money, relTime } from '@/lib/format';
 import { navigate } from '@/lib/router';
 import type { Tone } from '@/lib/domain';
 import { usePollWhile, useServerQuery } from '@/data/useServerQuery';
@@ -50,7 +50,7 @@ const REJECT: Record<string, string> = {
 };
 const FIELD: Record<string, string> = { intent: 'intent', locations: 'locations', budget: 'budget', property_type: 'property type', bedrooms: 'bedrooms' };
 
-const price = (p: live.PropertyMatch['property']) => `${p.currency === 'INR' ? inr(p.price) : `${p.currency} ${p.price.toLocaleString()}`}${p.listing_type === 'rent' ? '/mo' : ''}`;
+const price = (p: live.PropertyMatch['property']) => `${money(p.price, { currency: p.currency })}${p.listing_type === 'rent' ? '/mo' : ''}`;
 
 export function PropertyMatchesPanel({ lead, onBook }: { lead: Lead; onBook: (propertyId: string) => void }) {
   const q = useServerQuery(true, () => live.leadPropertyMatches(lead.id), [lead.id, lead.updatedAt]);

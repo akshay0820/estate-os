@@ -8,7 +8,7 @@ import { LIVE, actions, ok } from '@/data/actions';
 import { useCan, useLookup, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate } from '@/lib/router';
-import { compactNum, fmtDate, inr } from '@/lib/format';
+import { fmtDate, money, currencySymbol } from '@/lib/format';
 import { downloadCsv } from '@/lib/util';
 import type { Commission, Expense } from '@/store/types';
 import { MemberChip } from './shared';
@@ -57,13 +57,13 @@ export function FinancePage() {
         }
       />
       <div className="grid g-kpi">
-        <div className="card kpi"><div className="kpi-label">Expected (estimated)</div><div className="kpi-value">{inr(sum(['estimated']))}</div><div className="kpi-foot">Awaiting approval</div></div>
-        <div className="card kpi"><div className="kpi-label">Approved & payable</div><div className="kpi-value">{inr(sum(['approved', 'payable']))}</div><div className="kpi-foot">Invoiced, not received</div></div>
-        <div className="card kpi"><div className="kpi-label">Received · 6 months</div><div className="kpi-value">{inr(received.reduce((a, b) => a + b, 0))}</div><div className="kpi-foot">Cash in</div></div>
-        <div className="card kpi"><div className="kpi-label">Expenses · 6 months</div><div className="kpi-value">{LIVE ? '—' : inr(spent.reduce((a, b) => a + b, 0))}</div><div className="kpi-foot">{LIVE ? 'Expense tracking arrives with finance M2' : `${expenses.filter((e) => e.status === 'pending').length} unpaid`}</div></div>
+        <div className="card kpi"><div className="kpi-label">Expected (estimated)</div><div className="kpi-value">{money(sum(['estimated']))}</div><div className="kpi-foot">Awaiting approval</div></div>
+        <div className="card kpi"><div className="kpi-label">Approved & payable</div><div className="kpi-value">{money(sum(['approved', 'payable']))}</div><div className="kpi-foot">Invoiced, not received</div></div>
+        <div className="card kpi"><div className="kpi-label">Received · 6 months</div><div className="kpi-value">{money(received.reduce((a, b) => a + b, 0))}</div><div className="kpi-foot">Cash in</div></div>
+        <div className="card kpi"><div className="kpi-label">Expenses · 6 months</div><div className="kpi-value">{LIVE ? '—' : money(spent.reduce((a, b) => a + b, 0))}</div><div className="kpi-foot">{LIVE ? 'Expense tracking arrives with finance M2' : `${expenses.filter((e) => e.status === 'pending').length} unpaid`}</div></div>
       </div>
       <Card title="Commission received vs expenses" className="mt-16" actions={<div className="legend"><span><i style={{ background: 'var(--chart-1)' }} /> Received</span><span><i style={{ background: 'var(--chart-5)' }} /> Expenses</span></div>}>
-        <BarChart height={220} labels={months.map((m) => m.label)} format={(v) => `₹${compactNum(v)}`} series={[{ name: 'Received', values: received, color: 'var(--chart-1)' }, { name: 'Expenses', values: spent, color: 'var(--chart-5)' }]} />
+        <BarChart height={220} labels={months.map((m) => m.label)} format={(v) => money(v)} series={[{ name: 'Received', values: received, color: 'var(--chart-1)' }, { name: 'Expenses', values: spent, color: 'var(--chart-5)' }]} />
       </Card>
       <div className="card mt-16">
         <div style={{ padding: '4px 14px 0' }}>
@@ -78,7 +78,7 @@ export function FinancePage() {
                   <tr key={c.id}>
                     <td><button className="link truncate" style={{ maxWidth: 300, display: 'inline-block' }} onClick={() => navigate('deals', { id: c.dealId })}>{deals.get(c.dealId)?.title ?? 'Deal'}</button></td>
                     <td><MemberChip id={c.beneficiaryId} /></td>
-                    <td className="right num">{inr(c.gross, { compact: false })}</td>
+                    <td className="right num">{money(c.gross, { compact: false })}</td>
                     <td><Badge tone={C_TONE[c.status]} dot>{c.status}</Badge></td>
                     <td className="faint">{fmtDate(c.createdAt, true)}</td>
                     <td className="faint">{c.paidAt ? fmtDate(c.paidAt, true) : '—'}</td>
@@ -87,7 +87,7 @@ export function FinancePage() {
                         <Button size="xs" icon={<Check size={12} />} onClick={async () => {
                           const to = NEXT[c.status]!;
                           if (to === 'paid') {
-                            const r = await confirm({ title: 'Mark as paid?', body: `${inr(c.gross, { compact: false })} recorded as received. This doesn't move money — it records a payment that already happened.`, confirmLabel: 'Mark paid' });
+                            const r = await confirm({ title: 'Mark as paid?', body: `${money(c.gross, { compact: false })} recorded as received. This doesn't move money — it records a payment that already happened.`, confirmLabel: 'Mark paid' });
                             if (!r.ok) return;
                           }
                           if (await ok(() => actions.advanceCommission(c.id, to as 'approved' | 'payable' | 'paid'))) toast({ kind: 'success', title: `Commission ${to}` });
@@ -108,7 +108,7 @@ export function FinancePage() {
                   <tr key={e.id}>
                     <td><div className="cell-main"><span className="icon-chip"><Receipt size={13} /></span>{e.vendor}</div></td>
                     <td><Badge>{e.category.replace('_', ' ')}</Badge></td>
-                    <td className="right num">{inr(e.amount, { compact: false })}</td>
+                    <td className="right num">{money(e.amount, { compact: false })}</td>
                     <td className="faint">{fmtDate(e.date, true)}</td>
                     <td><Badge tone={e.status === 'paid' ? 'success' : 'warning'} dot>{e.status}</Badge></td>
                     <td className="right">{canEdit && e.status === 'pending' && <Button size="xs" icon={<Wallet size={12} />} onClick={() => { setExpenseStatus(e.id, 'paid'); toast({ kind: 'success', title: 'Expense marked paid' }); }}>Mark paid</Button>}</td>
@@ -141,7 +141,7 @@ function ExpenseModal({ onClose }: { onClose: () => void }) {
         {err && <div className="banner danger full">{err}</div>}
         <Field label="Vendor" className="full"><Input value={f.vendor} onChange={(e) => setF({ ...f, vendor: e.target.value })} data-autofocus /></Field>
         <Field label="Category"><Select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value as Expense['category'] })}>{['marketing', 'ai_usage', 'telephony', 'software', 'operations'].map((c) => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}</Select></Field>
-        <Field label="Amount (₹)"><Input value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value.replace(/\D/g, '') })} inputMode="numeric" /></Field>
+        <Field label={`Amount (${currencySymbol()})`}><Input value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value.replace(/\D/g, '') })} inputMode="numeric" /></Field>
         <Field label="Date"><Input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></Field>
         <Field label="Status"><Select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as Expense['status'] })}><option value="pending">Pending</option><option value="paid">Paid</option></Select></Field>
       </div>

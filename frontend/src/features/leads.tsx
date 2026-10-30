@@ -57,7 +57,7 @@ import { useCan, useLookup, useMe, useOrg, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { CHANNEL_LABEL, findDuplicates, LEAD_FLOW, LEAD_STATUS, LOST_REASONS, matchProperties, OPEN_LEAD, outboundPolicy } from '@/lib/domain';
-import { fmtDateTime, inr, relTime, toLocalInput, fromLocalInput } from '@/lib/format';
+import { fmtDateTime, money, relTime, toLocalInput, fromLocalInput, budgetInputUnit, currencySymbol, moneyPrecise } from '@/lib/format';
 import { cx, downloadCsv, parseCsv } from '@/lib/util';
 import { IMPORT_MAX_ROWS, checkImportHeaders } from '@/lib/leadImport';
 import type { Channel, ConsentState, Lead, LeadStatus } from '@/store/types';
@@ -352,7 +352,7 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
                           {l.budgetMax ? (
                             <span className="row" style={{ justifyContent: 'flex-end', gap: 6 }}>
                               {l.aiFields.includes('budget') && <Sparkles size={11} className="accent-text" aria-label="AI-extracted" />}
-                              {inr(l.budgetMax)}{l.intent === 'rent' && <span className="faint">/mo</span>}
+                              {money(l.budgetMax)}{l.intent === 'rent' && <span className="faint">/mo</span>}
                             </span>
                           ) : <span className="faint">Unknown</span>}
                         </td>
@@ -470,7 +470,7 @@ function LeadBoard({ leads, canEdit }: { leads: Lead[]; canEdit: boolean }) {
           <div className="kb-head">
             {LEAD_STATUS[c].label}
             <span className="count">{grouped[c].length}</span>
-            <span className="sum">{inr(grouped[c].reduce((s, l) => s + (l.budgetMax ?? 0), 0))}</span>
+            <span className="sum">{money(grouped[c].reduce((s, l) => s + (l.budgetMax ?? 0), 0))}</span>
           </div>
           <div className="kb-list">
             {grouped[c].slice(0, 40).map((l) => (
@@ -487,7 +487,7 @@ function LeadBoard({ leads, canEdit }: { leads: Lead[]; canEdit: boolean }) {
                   <ScorePill score={l.score} />
                 </div>
                 <div className="faint" style={{ fontSize: 12, marginTop: 3 }}>
-                  {l.budgetMax ? inr(l.budgetMax) : 'Budget unknown'} · {l.locations[0] ?? 'Location unknown'}
+                  {l.budgetMax ? money(l.budgetMax) : 'Budget unknown'} · {l.locations[0] ?? 'Location unknown'}
                 </div>
                 <div className="kb-meta">
                   <MemberChip id={l.assignedTo} showName={false} />
@@ -536,7 +536,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
     setErrors(e);
     if (Object.keys(e).length) return;
     if (dupes.length && !choice) return setErrors({ dup: 'Choose whether to link to the existing contact or create a separate one.' });
-    const multiplier = f.type === 'tenant' ? 1 : 1e5;
+    const multiplier = f.type === 'tenant' ? 1 : budgetInputUnit().multiplier;
     setBusy(true);
     const r = await attempt(() => actions.createLead({
       name: f.name.trim(), phone: f.phone, email: f.email, source: f.source, type: f.type,
@@ -611,7 +611,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
               {members.filter((m) => m.status === 'active' && m.role !== 'finance').map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </Select>
           </Field>
-          <Field label={f.type === 'tenant' ? 'Monthly rent up to (₹)' : 'Budget up to (₹ lakh)'} error={errors.budget} hint="Leave blank if unknown — it stays unknown.">
+          <Field label={f.type === 'tenant' ? `Monthly rent up to (${currencySymbol()})` : `Budget up to (${budgetInputUnit().label})`} error={errors.budget} hint="Leave blank if unknown — it stays unknown.">
             <Input value={f.budget} onChange={set('budget')} invalid={!!errors.budget} inputMode="decimal" placeholder={f.type === 'tenant' ? '85000' : '160'} />
           </Field>
           <Field label="Preferred locality" hint="Leave blank if unknown.">
@@ -858,7 +858,7 @@ function Overview({ lead, onEdit, canEdit }: { lead: Lead; onEdit: () => void; c
         <KV
           items={[
             ['Intent', <span key="i" style={{ textTransform: 'capitalize' }}>{lead.intent}</span>],
-            ['Budget', lead.budgetMax ? <>{lead.budgetMin ? `${inr(lead.budgetMin)} – ` : 'Up to '}{inr(lead.budgetMax)}{lead.intent === 'rent' ? '/mo' : ''} {ai('budget')}</> : <span className="faint">Unknown</span>],
+            ['Budget', lead.budgetMax ? <>{lead.budgetMin ? `${money(lead.budgetMin)} – ` : 'Up to '}{money(lead.budgetMax)}{lead.intent === 'rent' ? '/mo' : ''} {ai('budget')}</> : <span className="faint">Unknown</span>],
             ['Locations', lead.locations.length ? <>{lead.locations.map((l) => <span key={l} className="tag">{l}</span>)} {ai('locations')}</> : <span className="faint">Unknown</span>],
             ['Configuration', lead.propertyType || lead.bedrooms != null ? <>{lead.bedrooms != null ? `${lead.bedrooms} BHK ` : ''}{lead.propertyType ?? <span className="faint">type unknown</span>} {ai('bedrooms') || ai('propertyType')}</> : <span className="faint">Unknown</span>],
             ['Timeline', lead.timeline ? <>{lead.timeline} {ai('timeline')}</> : <span className="faint">Unknown</span>],
@@ -935,7 +935,7 @@ function RequirementsForm({ lead, onDone }: { lead: Lead; onDone: () => void }) 
   const localities = useMemo(() => [...new Set(useStore.getState().properties.filter((p) => p.orgId === org.id).map((p) => p.locality))].sort(), [org.id]);
   const rent = lead.intent === 'rent' || lead.intent === 'let';
   const [f, setF] = useState({
-    budgetMax: lead.budgetMax ? String(rent ? lead.budgetMax : lead.budgetMax / 1e5) : '',
+    budgetMax: lead.budgetMax ? String(rent ? lead.budgetMax : lead.budgetMax / budgetInputUnit().multiplier) : '',
     locations: lead.locations,
     bedrooms: lead.bedrooms != null ? String(lead.bedrooms) : '',
     propertyType: lead.propertyType ?? '',
@@ -944,7 +944,7 @@ function RequirementsForm({ lead, onDone }: { lead: Lead; onDone: () => void }) 
     intent: lead.intent,
   });
   const save = async () => {
-    const bm = f.budgetMax ? Number(f.budgetMax) * (f.intent === 'rent' ? 1 : 1e5) : null;
+    const bm = f.budgetMax ? Number(f.budgetMax) * (f.intent === 'rent' ? 1 : budgetInputUnit().multiplier) : null;
     setBusy(true);
     const saved = await ok(() => actions.updateLead(lead.id, {
       budgetMax: bm, budgetMin: bm ? Math.round(bm * 0.8) : null, locations: f.locations, bedrooms: f.bedrooms ? Number(f.bedrooms) : null,
@@ -963,7 +963,7 @@ function RequirementsForm({ lead, onDone }: { lead: Lead; onDone: () => void }) 
             {['buy', 'rent', 'invest', 'sell', 'let'].map((i) => <option key={i} value={i}>{i}</option>)}
           </Select>
         </Field>
-        <Field label={f.intent === 'rent' ? 'Max rent (₹ / month)' : 'Max budget (₹ lakh)'}>
+        <Field label={f.intent === 'rent' ? `Max rent (${currencySymbol()} / month)` : `Max budget (${budgetInputUnit().label})`}>
           <Input value={f.budgetMax} onChange={(e) => setF({ ...f, budgetMax: e.target.value })} inputMode="decimal" placeholder="Unknown" />
         </Field>
         <Field label="Property type">
@@ -1037,7 +1037,7 @@ function Matches({ lead, onBook }: { lead: Lead; onBook: (propertyId: string) =>
               <b className="truncate">{m.property.title}</b>
               <span className="mono faint" style={{ fontSize: 11 }}>{m.property.ref}</span>
             </div>
-            <div className="faint" style={{ fontSize: 12.5 }}>{m.property.locality} · {inr(m.property.price)}{m.property.listing === 'rent' ? '/mo' : ''} · {m.property.area.toLocaleString('en-IN')} sq ft</div>
+            <div className="faint" style={{ fontSize: 12.5 }}>{m.property.locality} · {money(m.property.price)}{m.property.listing === 'rent' ? '/mo' : ''} · {m.property.area.toLocaleString('en-IN')} sq ft</div>
             <div className="row wrap mt-8" style={{ gap: 5 }}>
               {m.reasons.map((r) => <span key={r} className="badge badge-success"><Check size={10} /> {r}</span>)}
               {m.gaps.map((g) => <span key={g} className={cx('badge', g.includes('verified') ? 'badge-warning' : '')}>{g}</span>)}
@@ -1135,7 +1135,7 @@ function DemoComms({ leadId, contactId }: { leadId: string; contactId: string })
                 <span className="icon-chip">{c.agentId ? <Bot size={14} /> : <PhoneCall size={14} />}</span>
                 <div className="grow">
                   <div style={{ fontWeight: 500 }}>{c.agentId ? 'AI call' : 'Manual call'} · {c.direction}</div>
-                  <div className="faint" style={{ fontSize: 12 }}>{fmtDateTime(c.startedAt)}{c.duration ? ` · ${Math.floor(c.duration / 60)}m ${c.duration % 60}s` : ''}{c.cost ? ` · ₹${c.cost.toFixed(2)}` : ''}</div>
+                  <div className="faint" style={{ fontSize: 12 }}>{fmtDateTime(c.startedAt)}{c.duration ? ` · ${Math.floor(c.duration / 60)}m ${c.duration % 60}s` : ''}{c.cost ? ` · ${moneyPrecise(c.cost)}` : ''}</div>
                 </div>
                 <CallStatusInline status={c.status} />
               </div>

@@ -7,7 +7,7 @@ import { useCan, useOrg, useOrgList } from '@/store/hooks';
 import { toast } from '@/store/ui';
 import { navigate, setParam } from '@/lib/router';
 import { RUN_STATUS } from '@/lib/domain';
-import { DAY, inr, ms, pct, relTime, startOfDay } from '@/lib/format';
+import { DAY, money, ms, pct, relTime, startOfDay, currencySymbol } from '@/lib/format';
 import { cx } from '@/lib/util';
 import type { Agent, Autonomy } from '@/store/types';
 import { CHANNEL_ICON, StatusBadge } from './shared';
@@ -111,7 +111,7 @@ function DemoAgentsPage({ params }: { params: URLSearchParams }) {
               <div>
                 <div className="row row-between" style={{ fontSize: 12, marginBottom: 6 }}>
                   <span className="faint">Today's budget</span>
-                  <span className="num">{inr(st.spent)} / {inr(a.dailyBudget)}</span>
+                  <span className="num">{money(st.spent)} / {money(a.dailyBudget)}</span>
                 </div>
                 <Progress value={st.spent / a.dailyBudget} tone={st.spent / a.dailyBudget > 0.85 ? 'danger' : 'accent'} />
               </div>
@@ -186,7 +186,7 @@ function AgentDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           <p className="faint mt-8" style={{ fontSize: 12 }}>No arbitrary SQL, shell, URL fetch or permission changes exist as tools. Allow-lists are enforced server-side, not by the prompt.</p>
         </section>
         <section className="form-grid">
-          <Field label="Daily budget (₹)" hint="Non-essential runs pause when reached"><Input disabled={!canManage} value={draft.dailyBudget} inputMode="numeric" onChange={(e) => setDraft({ ...draft, dailyBudget: Number(e.target.value.replace(/\D/g, '')) || 0 })} /></Field>
+          <Field label={`Daily budget (${currencySymbol()})`} hint="Non-essential runs pause when reached"><Input disabled={!canManage} value={draft.dailyBudget} inputMode="numeric" onChange={(e) => setDraft({ ...draft, dailyBudget: Number(e.target.value.replace(/\D/g, '')) || 0 })} /></Field>
           <Field label="Max steps per run" hint="Prevents loops"><Input disabled={!canManage} value={draft.maxSteps} inputMode="numeric" onChange={(e) => setDraft({ ...draft, maxSteps: Math.min(50, Number(e.target.value.replace(/\D/g, '')) || 1) })} /></Field>
         </section>
         <KV items={[

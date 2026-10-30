@@ -2,21 +2,53 @@ export const MIN = 60_000;
 export const HOUR = 60 * MIN;
 export const DAY = 24 * HOUR;
 
-/** ₹1.2 Cr / ₹85 L / ₹45,000 — Indian grouping, compact for large sums. */
-export function inr(value: number | null | undefined, opts: { compact?: boolean } = {}): string {
+// Money follows the active workspace's currency (organizations.default_currency), set once by the app shell.
+// INR keeps Indian grouping and lakh / crore; every other currency uses US-style grouping and K / M.
+let activeCurrency = 'USD';
+
+export function setMoneyCurrency(code: string | null | undefined) {
+  activeCurrency = code || 'USD';
+}
+
+export function moneyCurrency(): string {
+  return activeCurrency;
+}
+
+const locale = (code: string) => (code === 'INR' ? 'en-IN' : 'en-US');
+
+/** "$", "₹", "AED"… for labels such as "Price ($)". */
+export function currencySymbol(code = activeCurrency): string {
+  return new Intl.NumberFormat(locale(code), { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' })
+    .formatToParts(0).find((p) => p.type === 'currency')?.value ?? code;
+}
+
+/** $1.2M / $850K / $45,000 (or ₹1.2 Cr / ₹85 L for INR) — compact for large sums. */
+export function money(value: number | null | undefined, opts: { compact?: boolean; currency?: string } = {}): string {
   if (value == null || Number.isNaN(value)) return '—';
+  const code = opts.currency || activeCurrency;
   const compact = opts.compact ?? true;
   const abs = Math.abs(value);
   const sign = value < 0 ? '−' : '';
-  if (compact && abs >= 1e7) return `${sign}₹${trim(abs / 1e7)} Cr`;
-  if (compact && abs >= 1e5) return `${sign}₹${trim(abs / 1e5)} L`;
-  if (compact && abs >= 1e4) return `${sign}₹${trim(abs / 1e3)}k`;
-  return `${sign}₹${Math.round(abs).toLocaleString('en-IN')}`;
+  const sym = currencySymbol(code);
+  if (code === 'INR') {
+    if (compact && abs >= 1e7) return `${sign}${sym}${trim(abs / 1e7)} Cr`;
+    if (compact && abs >= 1e5) return `${sign}${sym}${trim(abs / 1e5)} L`;
+  } else {
+    if (compact && abs >= 1e6) return `${sign}${sym}${trim(abs / 1e6)}M`;
+    if (compact && abs >= 1e5) return `${sign}${sym}${trim(abs / 1e3)}K`;
+  }
+  if (compact && abs >= 1e4) return `${sign}${sym}${trim(abs / 1e3)}${code === 'INR' ? 'k' : 'K'}`;
+  return `${sign}${sym}${Math.round(abs).toLocaleString(locale(code))}`;
 }
 
 /** Small currency values such as AI cost per call. */
-export function inrPrecise(value: number): string {
-  return `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export function moneyPrecise(value: number, currency = activeCurrency): string {
+  return `${currencySymbol(currency)}${value.toLocaleString(locale(currency), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/** How budgets are typed in forms: INR in lakh (×100,000), other currencies in whole units. */
+export function budgetInputUnit(code = activeCurrency): { label: string; multiplier: number } {
+  return code === 'INR' ? { label: `${currencySymbol(code)} lakh`, multiplier: 1e5 } : { label: currencySymbol(code), multiplier: 1 };
 }
 
 function trim(n: number): string {
@@ -24,11 +56,12 @@ function trim(n: number): string {
 }
 
 export function num(value: number): string {
-  return value.toLocaleString('en-IN');
+  return value.toLocaleString(locale(activeCurrency));
 }
 
 export function compactNum(value: number): string {
-  if (Math.abs(value) >= 1e5) return `${trim(value / 1e5)}L`;
+  if (activeCurrency === 'INR' && Math.abs(value) >= 1e5) return `${trim(value / 1e5)}L`;
+  if (activeCurrency !== 'INR' && Math.abs(value) >= 1e6) return `${trim(value / 1e6)}M`;
   if (Math.abs(value) >= 1e3) return `${trim(value / 1e3)}k`;
   return String(Math.round(value));
 }
