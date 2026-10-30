@@ -267,13 +267,16 @@ export interface Call {
   policyNote: string | null;
 }
 
+/** The eight agents the product ships (agent ids in the database: lead_intake_agent … sales_intelligence_agent). */
 export type AgentType =
+  | 'lead_intake'
+  | 'voice_calling'
   | 'qualification'
-  | 'appointment_setter'
+  | 'property_matching'
   | 'follow_up'
-  | 'property_matcher'
-  | 'summarizer'
-  | 'sales_copilot';
+  | 'appointment'
+  | 'data_quality'
+  | 'sales_intelligence';
 
 export type Autonomy = 'suggest_only' | 'approval_required' | 'bounded_auto';
 

@@ -327,7 +327,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   const activities: Activity[] = [];
   const leadCount = Math.round(520 * cfg.scale);
   const sys = { type: 'system' as const, name: 'System' };
-  const qualAgentName = 'Qualification Agent';
+  const qualAgentName = 'AI Voice Calling Agent';
 
   for (let i = 0; i < leadCount; i++) {
     // Density grows toward the present, so recent periods trend upward.
@@ -560,14 +560,18 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   }
 
   /* Agents */
+  // The eight agents the product ships (same names, order and roles as the live AI agents page).
   const agents: Agent[] = [
-    { id: id('agt'), orgId, name: 'Qualification Agent', type: 'qualification', purpose: 'Calls new enquiries within minutes, captures budget, location, configuration and timeline as structured fields.', status: 'active', autonomy: 'bounded_auto', tools: ['get_lead', 'update_lead_fields', 'create_task', 'request_human_handoff'], channel: 'phone', model: 'claude-sonnet-5-5', version: 7, dailyBudget: 2500, maxSteps: 12, escalation: ['Caller asks for a human', 'Legal or pricing negotiation', 'Low extraction confidence'], createdAt: now - 160 * DAY },
-    { id: id('agt'), orgId, name: 'WhatsApp Concierge', type: 'appointment_setter', purpose: 'Answers listing questions from verified inventory and proposes site-visit slots.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'search_properties', 'get_verified_property_details', 'check_appointment_availability', 'request_appointment_booking', 'draft_customer_message', 'send_approved_message'], channel: 'whatsapp', model: 'claude-sonnet-5-5', version: 4, dailyBudget: 1200, maxSteps: 10, escalation: ['Complaint or frustration', 'Question outside verified data'], createdAt: now - 120 * DAY },
-    { id: id('agt'), orgId, name: 'Property Matcher', type: 'property_matcher', purpose: 'Ranks active, verified inventory against lead requirements and explains each match.', status: 'active', autonomy: 'suggest_only', tools: ['get_lead', 'search_properties', 'get_verified_property_details'], channel: null, model: 'claude-haiku-5-5', version: 3, dailyBudget: 400, maxSteps: 6, escalation: ['No property above match threshold'], createdAt: now - 110 * DAY },
-    { id: id('agt'), orgId, name: 'Follow-up Writer', type: 'follow_up', purpose: 'Drafts follow-up messages from approved templates after visits and missed calls.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'draft_customer_message', 'send_approved_message', 'create_task'], channel: 'whatsapp', model: 'claude-haiku-5-5', version: 5, dailyBudget: 600, maxSteps: 6, escalation: ['Lead replied with objection'], createdAt: now - 90 * DAY },
-    { id: id('agt'), orgId, name: 'Call Summarizer', type: 'summarizer', purpose: 'Turns call transcripts into a short factual history, separating statements from inferences.', status: 'active', autonomy: 'bounded_auto', tools: ['get_lead', 'update_lead_fields'], channel: null, model: 'claude-haiku-5-5', version: 2, dailyBudget: 300, maxSteps: 3, escalation: [], createdAt: now - 80 * DAY },
-    { id: id('agt'), orgId, name: 'Deal Copilot', type: 'sales_copilot', purpose: 'Summarizes stalled deals and suggests next steps. Never commits to terms.', status: 'paused', autonomy: 'suggest_only', tools: ['get_lead', 'create_task'], channel: null, model: 'claude-sonnet-5-5', version: 1, dailyBudget: 300, maxSteps: 5, escalation: ['Any contractual question'], createdAt: now - 20 * DAY },
+    { id: id('agt'), orgId, name: 'AI Lead Intake Agent', type: 'lead_intake', purpose: 'Captures every enquiry from forms, portals and imports, checks it, spots repeat enquiries and assigns an owner.', status: 'active', autonomy: 'bounded_auto', tools: ['create_lead', 'find_duplicates', 'assign_owner', 'request_human_handoff'], channel: null, model: 'claude-opus-5-5', version: 3, dailyBudget: 300, maxSteps: 6, escalation: ['Possible duplicate with conflicting details'], createdAt: now - 160 * DAY },
+    { id: id('agt'), orgId, name: 'AI Voice Calling Agent', type: 'voice_calling', purpose: 'Calls new enquiries (with AI-call consent, inside calling hours) to capture budget, area, configuration and timeline.', status: 'active', autonomy: 'bounded_auto', tools: ['get_lead', 'update_lead_fields', 'create_task', 'request_human_handoff'], channel: 'phone', model: 'claude-opus-5-5', version: 7, dailyBudget: 2500, maxSteps: 12, escalation: ['Caller asks for a human', 'Legal or pricing negotiation', 'Low extraction confidence'], createdAt: now - 150 * DAY },
+    { id: id('agt'), orgId, name: 'AI Sales & Qualification Agent', type: 'qualification', purpose: 'Scores how ready each lead is to buy or rent, explains the score and lists the details still missing.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'score_lead', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 4, dailyBudget: 500, maxSteps: 6, escalation: ['Borderline score', 'Conflicting requirements'], createdAt: now - 140 * DAY },
+    { id: id('agt'), orgId, name: 'AI Property Matching Agent', type: 'property_matching', purpose: 'Ranks active, verified listings against each lead’s hard requirements and explains every match.', status: 'active', autonomy: 'suggest_only', tools: ['get_lead', 'search_properties', 'get_verified_property_details'], channel: null, model: 'claude-opus-5-5', version: 3, dailyBudget: 400, maxSteps: 6, escalation: ['No listing meets the hard requirements'], createdAt: now - 120 * DAY },
+    { id: id('agt'), orgId, name: 'AI Follow-Up Agent', type: 'follow_up', purpose: 'Drafts the next message from real matches and missing details; a person approves and sends it.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'draft_customer_message', 'send_approved_message', 'create_task'], channel: 'whatsapp', model: 'claude-opus-5-5', version: 5, dailyBudget: 600, maxSteps: 6, escalation: ['Lead replied with an objection', 'No channel has consent'], createdAt: now - 110 * DAY },
+    { id: id('agt'), orgId, name: 'AI Appointment Agent', type: 'appointment', purpose: 'Offers only verified free times and books site visits without double-booking; reschedules and cancels.', status: 'active', autonomy: 'approval_required', tools: ['check_appointment_availability', 'request_appointment_booking', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 2, dailyBudget: 300, maxSteps: 5, escalation: ['No free slot in the requested window'], createdAt: now - 90 * DAY },
+    { id: id('agt'), orgId, name: 'AI CRM & Data Intelligence Agent', type: 'data_quality', purpose: 'Finds duplicates and inconsistent records, proposes fixes and merges; a person approves every change.', status: 'active', autonomy: 'suggest_only', tools: ['scan_records', 'propose_merge', 'propose_fix'], channel: null, model: 'claude-opus-5-5', version: 2, dailyBudget: 300, maxSteps: 4, escalation: ['High-severity finding'], createdAt: now - 60 * DAY },
+    { id: id('agt'), orgId, name: 'AI Sales Intelligence Agent', type: 'sales_intelligence', purpose: 'Computes the funnel, sources and team metrics with fixed definitions and suggests where to focus. Never commits to terms.', status: 'active', autonomy: 'suggest_only', tools: ['run_metrics', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 1, dailyBudget: 300, maxSteps: 5, escalation: ['Any contractual question'], createdAt: now - 30 * DAY },
   ];
+  const agentOf = (type: Agent['type']) => agents.find((a) => a.type === type)!;
 
   /* Workflows (PRD §8.11 initial templates) */
   const wf = (key: string, name: string, description: string, trigger: string, steps: [string, Workflow['steps'][number]['kind']][], exitRules: string[], status: Workflow['status'] = 'active', owner: Workflow['owner'] = 'app'): Workflow => ({
@@ -642,7 +646,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const msgs: Message[] = [];
     const push = (direction: Message['direction'], sender: Message['sender'], body: string, gap = intBetween(rand, 1, 25) * MIN, senderName?: string) => {
       t += gap;
-      msgs.push({ id: id('msg'), direction, sender, senderName: senderName ?? (sender === 'contact' ? c.name : sender === 'ai' ? 'WhatsApp Concierge' : sender === 'user' ? agentM?.name ?? 'Agent' : 'System'), body, at: Math.min(t, now - 2 * MIN), status: direction === 'in' ? 'received' : 'read' });
+      msgs.push({ id: id('msg'), direction, sender, senderName: senderName ?? (sender === 'contact' ? c.name : sender === 'ai' ? 'AI Follow-Up Agent' : sender === 'user' ? agentM?.name ?? 'Agent' : 'System'), body, at: Math.min(t, now - 2 * MIN), status: direction === 'in' ? 'received' : 'read' });
     };
     let owner: Conversation['owner'] = 'ai';
     if (script === 0) {
@@ -689,7 +693,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
 
   /* Calls */
   const calls: Call[] = [];
-  const qa = agents[0];
+  const qa = agentOf('voice_calling');
   for (let i = 0; i < Math.round(220 * cfg.scale) + 6; i++) {
     const l = pick(rand, leads.filter((x) => now - x.createdAt < 30 * DAY) .length ? leads.filter((x) => now - x.createdAt < 30 * DAY) : leads);
     const status: Call['status'] = pickWeighted(rand, [['completed', 62], ['no_answer', 18], ['busy', 5], ['failed', 3], ['needs_review', 3], ['blocked', 2]]);
@@ -715,15 +719,15 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   const openDeal = deals.find((d) => d.stage === 'negotiation') ?? deals[0];
   const visitLead = leads.find((l) => l.status === 'qualified') ?? leads[0];
   if (pendingConv) {
-    approvals.push({ id: id('apr'), orgId, action: 'send_approved_message', summary: `Send 3 property recommendations to ${contacts.find((c) => c.id === pendingConv.contactId)?.name}`, risk: 'medium', requestedBy: { type: 'ai_agent', name: 'WhatsApp Concierge' }, status: 'pending', createdAt: now - 18 * MIN, expiresAt: now + 6 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'send_message', conversationId: pendingConv.id, body: `Here are 3 verified homes that match what you shared:\n1. ${properties[0].title} — ${properties[0].locality}\n2. ${properties[1].title} — ${properties[1].locality}\n3. ${properties[2].title} — ${properties[2].locality}\nWould you like to visit any of these this week?` } });
+    approvals.push({ id: id('apr'), orgId, action: 'send_approved_message', summary: `Send 3 property recommendations to ${contacts.find((c) => c.id === pendingConv.contactId)?.name}`, risk: 'medium', requestedBy: { type: 'ai_agent', name: 'AI Follow-Up Agent' }, status: 'pending', createdAt: now - 18 * MIN, expiresAt: now + 6 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'send_message', conversationId: pendingConv.id, body: `Here are 3 verified homes that match what you shared:\n1. ${properties[0].title} — ${properties[0].locality}\n2. ${properties[1].title} — ${properties[1].locality}\n3. ${properties[2].title} — ${properties[2].locality}\nWould you like to visit any of these this week?` } });
   }
   if (openDeal)
-    approvals.push({ id: id('apr'), orgId, action: 'deal_stage_change', summary: `Move “${openDeal.title}” to Under contract`, risk: 'high', requestedBy: { type: 'ai_agent', name: 'Deal Copilot' }, status: 'pending', createdAt: now - 2 * HOUR, expiresAt: now + 22 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'deal_stage', dealId: openDeal.id, to: 'under_contract' } });
-  approvals.push({ id: id('apr'), orgId, action: 'request_appointment_booking', summary: `Book site visit for ${visitLead.name} — Saturday 11:00`, risk: 'medium', requestedBy: { type: 'ai_agent', name: 'WhatsApp Concierge' }, status: 'pending', createdAt: now - 42 * MIN, expiresAt: now + 3 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'book_appointment', leadId: visitLead.id, propertyId: properties[0].id, start: nextSaturday(now, 11) } });
+    approvals.push({ id: id('apr'), orgId, action: 'deal_stage_change', summary: `Move “${openDeal.title}” to Under contract`, risk: 'high', requestedBy: { type: 'ai_agent', name: 'AI Sales Intelligence Agent' }, status: 'pending', createdAt: now - 2 * HOUR, expiresAt: now + 22 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'deal_stage', dealId: openDeal.id, to: 'under_contract' } });
+  approvals.push({ id: id('apr'), orgId, action: 'request_appointment_booking', summary: `Book site visit for ${visitLead.name} — Saturday 11:00`, risk: 'medium', requestedBy: { type: 'ai_agent', name: 'AI Follow-Up Agent' }, status: 'pending', createdAt: now - 42 * MIN, expiresAt: now + 3 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'book_appointment', leadId: visitLead.id, propertyId: properties[0].id, start: nextSaturday(now, 11) } });
   approvals.push({ id: id('apr'), orgId, action: 'bulk_export', summary: 'Export 412 lead records to CSV', risk: 'high', requestedBy: { type: 'user', name: members[2]?.name ?? 'Manager' }, status: 'pending', createdAt: now - 5 * HOUR, expiresAt: now + 19 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'bulk_export', entity: 'leads', rows: 412 } });
   for (let i = 0; i < 9; i++) {
     const st = pickWeighted(rand, [['approved', 6], ['rejected', 2], ['expired', 1]] as const);
-    approvals.push({ id: id('apr'), orgId, action: pick(rand, ['send_approved_message', 'request_appointment_booking', 'deal_stage_change']), summary: pick(rand, ['Send visit confirmation to ' + personName(rand), 'Book viewing for ' + personName(rand), 'Send price-drop alert to ' + personName(rand)]), risk: pick(rand, ['low', 'medium'] as const), requestedBy: { type: 'ai_agent', name: pick(rand, ['WhatsApp Concierge', 'Follow-up Writer']) }, status: st, createdAt: now - intBetween(rand, 1, 9) * DAY, expiresAt: now - intBetween(rand, 0, 1) * DAY, decidedBy: st === 'expired' ? null : pick(rand, members.slice(0, 3)).name, decidedAt: st === 'expired' ? null : now - intBetween(rand, 1, 8) * DAY, note: st === 'rejected' ? 'Tone too pushy — rewrite.' : null, payload: { kind: 'bulk_export', entity: 'n/a', rows: 0 } });
+    approvals.push({ id: id('apr'), orgId, action: pick(rand, ['send_approved_message', 'request_appointment_booking', 'deal_stage_change']), summary: pick(rand, ['Send visit confirmation to ' + personName(rand), 'Book viewing for ' + personName(rand), 'Send price-drop alert to ' + personName(rand)]), risk: pick(rand, ['low', 'medium'] as const), requestedBy: { type: 'ai_agent', name: pick(rand, ['AI Follow-Up Agent', 'AI Follow-Up Agent']) }, status: st, createdAt: now - intBetween(rand, 1, 9) * DAY, expiresAt: now - intBetween(rand, 0, 1) * DAY, decidedBy: st === 'expired' ? null : pick(rand, members.slice(0, 3)).name, decidedAt: st === 'expired' ? null : now - intBetween(rand, 1, 8) * DAY, note: st === 'rejected' ? 'Tone too pushy — rewrite.' : null, payload: { kind: 'bulk_export', entity: 'n/a', rows: 0 } });
   }
 
   /* Follow-ups */
@@ -779,12 +783,12 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const growth = 0.55 + (1 - d / 90) * 0.6;
     const weekend = [0].includes(new Date(day).getDay()) ? 0.5 : 1;
     const f = growth * weekend * cfg.scale * between(rand, 0.85, 1.15);
-    usage.push({ orgId, day, category: 'voice', provider: 'Exotel Voice', agentId: agents[0].id, units: Math.round(95 * f), cost: Math.round(95 * f * 7.6) });
-    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agents[0].id, units: Math.round(310 * f), cost: Math.round(310 * f * 0.55) });
-    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agents[1].id, units: Math.round(180 * f), cost: Math.round(180 * f * 0.48) });
-    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agents[2].id, units: Math.round(90 * f), cost: Math.round(90 * f * 0.12) });
-    usage.push({ orgId, day, category: 'messaging', provider: 'WhatsApp Business', agentId: agents[1].id, units: Math.round(260 * f), cost: Math.round(260 * f * 0.78) });
-    usage.push({ orgId, day, category: 'messaging', provider: 'WhatsApp Business', agentId: agents[3].id, units: Math.round(120 * f), cost: Math.round(120 * f * 0.78) });
+    usage.push({ orgId, day, category: 'voice', provider: 'Exotel Voice', agentId: agentOf('voice_calling').id, units: Math.round(95 * f), cost: Math.round(95 * f * 7.6) });
+    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('qualification').id, units: Math.round(310 * f), cost: Math.round(310 * f * 0.55) });
+    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('follow_up').id, units: Math.round(180 * f), cost: Math.round(180 * f * 0.48) });
+    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('property_matching').id, units: Math.round(90 * f), cost: Math.round(90 * f * 0.12) });
+    usage.push({ orgId, day, category: 'messaging', provider: 'WhatsApp Business', agentId: agentOf('follow_up').id, units: Math.round(260 * f), cost: Math.round(260 * f * 0.78) });
+    usage.push({ orgId, day, category: 'messaging', provider: 'WhatsApp Business', agentId: agentOf('appointment').id, units: Math.round(120 * f), cost: Math.round(120 * f * 0.78) });
   }
 
   /* Finance */

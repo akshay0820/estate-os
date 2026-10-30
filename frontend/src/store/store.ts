@@ -490,7 +490,7 @@ export const useStore = create<Store>()(
           }
           const appt: Appointment = { ...a, id: uid('apt'), orgId: orgId(), createdAt: Date.now(), cancelReason: null, feedback: null };
           set((st) => ({ appointments: [...st.appointments, appt] }));
-          get().activity({ leadId: a.leadId, contactId: a.contactId, dealId: null, kind: 'appointment', title: `${a.title} booked`, body: new Date(a.start).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }), actor: a.source === 'ai' ? { type: 'ai_agent', name: 'WhatsApp Concierge' } : myActor() });
+          get().activity({ leadId: a.leadId, contactId: a.contactId, dealId: null, kind: 'appointment', title: `${a.title} booked`, body: new Date(a.start).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }), actor: a.source === 'ai' ? { type: 'ai_agent', name: 'AI Follow-Up Agent' } : myActor() });
           get().log('appointment.booked', 'appointment', appt.id);
           if (a.leadId) {
             const l = get().leads.find((x) => x.id === a.leadId);
@@ -1047,7 +1047,7 @@ export const useStore = create<Store>()(
       };
     },
     {
-      name: 'estate-os:data:v2',
+      name: 'estate-os:data:v3', // v3: the eight real agents and the workspace country
       // Live mode keeps business data in memory only; nothing tenant-owned is written to the browser.
       storage: createJSONStorage(() => (LIVE ? { getItem: () => null, setItem: () => undefined, removeItem: () => undefined } : localStorage)),
       partialize: (s) => {

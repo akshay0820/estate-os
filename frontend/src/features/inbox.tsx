@@ -321,7 +321,7 @@ function SidePanel({ conv }: { conv: Conversation }) {
         <div className="faint" style={{ fontSize: 12.5 }}>
           {conv.owner === 'ai' ? 'AI may reply within policy. Replies that need approval go to the Approvals queue.' : conv.owner === 'human' ? 'Human-owned. AI stays paused until someone resumes it.' : 'Unassigned. No automated replies.'}
         </div>
-        {conv.owner === 'ai' && <Badge tone="accent" className="mt-8">WhatsApp Concierge · approval required</Badge>}
+        {conv.owner === 'ai' && <Badge tone="accent" className="mt-8">AI Follow-Up Agent · approval required</Badge>}
       </section>
     </aside>
   );
