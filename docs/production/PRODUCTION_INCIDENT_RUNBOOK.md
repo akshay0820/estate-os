@@ -168,7 +168,7 @@ There is no calendar sync. A mismatch between the app and the agency's own calen
 
 | Alert | Status |
 |---|---|
-| Health endpoint non-200 (cron failures, worker errors ≥ 3 in 15 min, event backlog > 15 min, dead letters) | **Implemented in the endpoint; not yet connected to a monitor.** Needs an external uptime monitor and a test alert |
+| Health endpoint non-200 (cron failures, worker errors ≥ 3 in 15 min, event backlog > 15 min, dead letters) | **Monitored** by `.github/workflows/uptime.yml` every 5 min: it opens an `uptime` GitHub issue on failure and closes it on recovery (see `UPTIME_MONITORING.md`). The test alert is still to be run and recorded |
 | Database unreachable | Same endpoint (`down`, 503) |
 | Backup failures | Not observable from the app. Rely on the Supabase dashboard; check PITR in the daily runbook |
 | Excessive AI cost | Provider-side spend cap (Anthropic console). In-app: usage summary, manual |

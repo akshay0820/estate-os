@@ -133,7 +133,7 @@ It makes no calls, messages, appointments or payments. **All checks must pass.**
 
 ## 11. Monitoring verification
 
-- The external uptime monitor polls `/functions/v1/health` every 1–5 minutes and alerts on non-200. **Confirm one test alert reaches the on-call role.**
+- The external uptime monitor (`.github/workflows/uptime.yml`, see `UPTIME_MONITORING.md`) polls `/functions/v1/health` and the site every 5 minutes and alerts on non-200; set its `HEALTH_URL` and `SITE_URL` repository variables to production. **Confirm one test alert reaches the on-call role.**
 - The daily runbook queries return expected values.
 
 ## 12. Rollback criteria

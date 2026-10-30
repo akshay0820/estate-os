@@ -52,7 +52,7 @@ Status as of 2026-10-27.
 | Item | Status | Evidence | Role | Remaining | Blocks launch |
 |---|---|---|---|---|---|
 | Health checks | Done (staging) | `/functions/v1/health` deployed; `ops_health` live `ok` with real signals | Eng | Deploy to production; set `HEALTH_TOKEN` | No |
-| Monitoring | Partial | Endpoint ready; Pilot operations; usage summary | Ops | Choose an uptime monitor; poll health | **Yes** (G7) |
+| Monitoring | Partial | Endpoint ready; GitHub Actions uptime monitor every 5 min with issue alerts (`UPTIME_MONITORING.md`); usage summary | Ops | Run and record the test alert; point it at production; optionally add a second independent monitor | **Yes** (G7) |
 | Alerting | Open | No external alert configured or tested | Ops | Alert on non-200 to the on-call role; send a test alert | **Yes** |
 | Incident runbook | Done | `PRODUCTION_INCIDENT_RUNBOOK.md` | Ops | Fill in the roster | No |
 | Kill switches | Done | Agent pause (local 7, live 11, smoke SM-15); outbound; AI-step toggles | Eng | — | No |

@@ -1,0 +1,68 @@
+# External uptime monitor (gate G7). Every 5 minutes GitHub checks the health endpoint and the web app from outside our
+# infrastructure. On failure it opens a GitHub issue labelled `uptime` (once per outage) and marks the run failed, so the
+# repository owner is notified by GitHub. When everything is up again it comments and closes the issue.
+# Test the alert: Actions → uptime → Run workflow → tick "simulate failure"; run it again unticked to see it recover.
+# URLs come from repository variables HEALTH_URL and SITE_URL (Settings → Secrets and variables → Actions → Variables);
+# the defaults are the current deployment. GitHub may delay scheduled runs at busy times, and pauses schedules in a
+# public repository after 60 days without commits — see docs/production/UPTIME_MONITORING.md.
+name: uptime
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: 'Simulate a failure to test the alert'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - id: check
+        continue-on-error: true
+        run: bash .github/scripts/uptime-check.sh
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_URL || 'https://jvdnapofyoarhfctbpyi.supabase.co/functions/v1/health' }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://estate-os-smoky.vercel.app' }}
+          SIMULATE_FAILURE: ${{ inputs.simulate_failure || false }}
+
+      - name: Open, update or close the uptime issue
+        uses: actions/github-script@v7
+        env:
+          DOWN: ${{ steps.check.outcome == 'failure' }}
+          SUMMARY: ${{ steps.check.outputs.summary }}
+        with:
+          script: |
+            const down = process.env.DOWN === 'true';
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const when = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+            const body = `${process.env.SUMMARY}\nChecked ${when} · [run log](${run})`;
+            const open = (await github.rest.issues.listForRepo({ ...context.repo, labels: 'uptime', state: 'open', per_page: 1 })).data[0];
+            // One issue per outage: while still down the open issue stands and each failed run is red (no comment spam).
+            if (down && !open) {
+              await github.rest.issues.create({ ...context.repo, title: 'Estate OS is down', labels: ['uptime'],
+                body: `The uptime check failed.\n\n${body}\n\nFollow docs/production/PRODUCTION_INCIDENT_RUNBOOK.md §1. This issue closes itself when the checks pass again.` });
+            } else if (!down && open) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: open.number, body: `Recovered.\n\n${body}` });
+              await github.rest.issues.update({ ...context.repo, issue_number: open.number, state: 'closed', state_reason: 'completed' });
+            }
+
+      - name: Fail the run when down
+        if: steps.check.outcome == 'failure'
+        run: exit 1
