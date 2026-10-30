@@ -29,6 +29,7 @@ Source of truth: `supabase/migrations/` (applied in filename order). Never edit 
 | `20261025002300_workspace_currency.sql` | New workspaces default to USD; new leads, listings and deals take their workspace's currency (BEFORE INSERT triggers, explicit values kept); owners can change `organizations.default_currency` (column grant). Amounts are never converted |
 | `20261025002400_workspace_region.sql` | New workspaces default to country US and America/New_York (the setup form sends the creator's zone and country); owners can change `country_code`. `private.normalize_phone(raw, country)` gives numbers without a country code the workspace country's code (US/CA +1, IN +91), used by contacts and `create_lead`'s duplicate check; `intake_phone` reads US/Canadian numbers; data-quality checks validate +1 numbers |
 | `20261025002500_review_fixes.sql` | Code-review fixes: changing a workspace's country re-reads contact phones saved without a country code (duplicate checks keep matching); `contacts_before` checks the owner only when it is set or changed; `create_organization` takes `p_country` (one call; the three-argument version is replaced); `import_leads(p_org, p_rows)` imports up to 200 rows per call with one result per row |
+| `20261025002600_review_fixes_low.sql` | `normalize_phone` applies the North American check (area code and exchange start with 2–9) like `intake_phone`; `appointments_after` locks the lead before deciding whether a cancelled viewing was its last open one |
 
 ## Requirements on the target database
 * Supabase project (Postgres 15+; verified locally on 16 via PGlite, Supabase currently runs 17).
@@ -74,3 +75,11 @@ Then `supabase migration list` should show local and remote matching, and `supab
 
 ## Rollback / forward-fix
 These are the first migrations, so rollback on a fresh project = drop the project or reset its database. After go-live, fix forward with a new migration; destructive changes (dropping columns/tables, tightening constraints on populated tables) need an explicit plan and backup first.
+
+## Checking a project for drift
+
+`npm run schema:fingerprint` (from `frontend/`) builds a fresh database from these migrations and prints an md5 of every
+function in `public` and `private`. Run the SQL in the header of `frontend/scripts/schema-fingerprint.mjs` on the project,
+save its JSON, and run `npm run schema:fingerprint -- --compare remote.json`: it lists any function that differs, is
+missing or exists only on the project, and exits 1 on drift. Line endings are ignored. On 2026-10-30 staging matched all
+308 functions after migration 0026.

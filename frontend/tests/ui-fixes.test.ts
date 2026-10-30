@@ -64,6 +64,7 @@ describe('phones and time zones', () => {
     expect(normalizePhone('98444 00001', 'IN')).toBe('+919844400001');
     expect(normalizePhone('+44 20 7946 0958', 'US')).toBe('+442079460958');
     expect(normalizePhone('0044 20 7946 0958', 'US')).toBe('+442079460958');
+    expect(normalizePhone('(015) 555-0134', 'US')).toBe('');
   });
 
   it('guesses the country from the time zone and offers matching examples', () => {

@@ -16,10 +16,25 @@ export function moneyCurrency(): string {
 
 const locale = (code: string) => (code === 'INR' ? 'en-IN' : 'en-US');
 
+// Building an Intl formatter is far slower than using one; tables format hundreds of amounts per render.
+const symbols = new Map<string, string>();
+const groupers = new Map<string, Intl.NumberFormat>();
+const group = (n: number, code = activeCurrency) => {
+  const loc = locale(code);
+  let f = groupers.get(loc);
+  if (!f) groupers.set(loc, (f = new Intl.NumberFormat(loc)));
+  return f.format(n);
+};
+
 /** "$", "₹", "AED"… for labels such as "Price ($)". */
 export function currencySymbol(code = activeCurrency): string {
-  return new Intl.NumberFormat(locale(code), { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' })
-    .formatToParts(0).find((p) => p.type === 'currency')?.value ?? code;
+  let sym = symbols.get(code);
+  if (sym === undefined) {
+    sym = new Intl.NumberFormat(locale(code), { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' })
+      .formatToParts(0).find((p) => p.type === 'currency')?.value ?? code;
+    symbols.set(code, sym);
+  }
+  return sym;
 }
 
 /** $1.2M / $850K / $45,000 (or ₹1.2 Cr / ₹85 L for INR) — compact for large sums. */
@@ -38,7 +53,7 @@ export function money(value: number | null | undefined, opts: { compact?: boolea
     if (compact && abs >= 1e5) return `${sign}${sym}${trim(abs / 1e3)}K`;
   }
   if (compact && abs >= 1e4) return `${sign}${sym}${trim(abs / 1e3)}${code === 'INR' ? 'k' : 'K'}`;
-  return `${sign}${sym}${Math.round(abs).toLocaleString(locale(code))}`;
+  return `${sign}${sym}${group(Math.round(abs), code)}`;
 }
 
 /** Small currency values such as AI cost per call. */
@@ -56,7 +71,7 @@ function trim(n: number): string {
 }
 
 export function num(value: number): string {
-  return value.toLocaleString(locale(activeCurrency));
+  return group(value);
 }
 
 export function compactNum(value: number): string {

@@ -12,7 +12,8 @@
     "test:db": "vitest run tests/db",
     "lint": "eslint .",
     "check:functions": "tsc -p tsconfig.functions.json",
-    "predeploy": "node scripts/predeploy-check.mjs"
+    "predeploy": "node scripts/predeploy-check.mjs",
+    "schema:fingerprint": "node scripts/schema-fingerprint.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.5",

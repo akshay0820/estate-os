@@ -41,6 +41,12 @@ describe('phone numbers', () => {
     expect(await phoneOf(b)).toBe('+12125550188');
   });
 
+  it('a 10-digit number that is not a valid North American number is not stored as +1', async () => {
+    expect((await one<{ p: string | null }>(`select private.normalize_phone('(015) 555-0134', 'US') p`)).p).toBeNull();
+    expect((await one<{ p: string | null }>(`select private.normalize_phone('415 155 0134', 'US') p`)).p).toBeNull();
+    expect((await one<{ p: string }>(`select private.normalize_phone('98444 00001', 'IN') p`)).p).toBe('+919844400001');
+  });
+
   it('a number with a country code is kept as given', async () => {
     const c = (await t.lead(owner, us, { name: 'Chloe Martin', phone: '+44 20 7946 0958', type: 'buyer' })).lead_id;
     expect(await phoneOf(c)).toBe('+442079460958');

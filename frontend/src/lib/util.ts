@@ -83,8 +83,9 @@ export function normalizePhone(raw: string, country = phoneCountry): string {
   if (!digits) return '';
   if (/^\s*(\+|00)/.test(raw)) return `+${/^\s*00/.test(raw) ? digits.slice(2) : digits}`;
   if (country === 'US' || country === 'CA') {
-    if (digits.length === 10) return `+1${digits}`;
-    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+    // North American numbers: area code and exchange start with 2-9; anything else is not a valid +1 number.
+    if (digits.length === 10) return /^[2-9]\d{2}[2-9]/.test(digits) ? `+1${digits}` : '';
+    if (digits.length === 11 && digits.startsWith('1')) return /^1[2-9]\d{2}[2-9]/.test(digits) ? `+${digits}` : '';
   }
   if (country === 'IN') {
     if (digits.length === 10) return `+91${digits}`;

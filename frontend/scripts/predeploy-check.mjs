@@ -4,6 +4,7 @@
 //                                          known non-production project (staging refs below or PREDEPLOY_NONPROD_REFS)
 // Exits 1 on any failure. Prints no secret values.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -60,6 +61,14 @@ else {
     }
   }
   leaks.length ? fail(`bundle contains server secrets: ${leaks.join('; ')}`) : ok('bundle contains no server-side secrets');
+
+  // The Content-Security-Policy in vercel.json allows inline scripts only by hash; editing index.html changes the hash.
+  const html = readFileSync(join(dist, 'index.html'), 'utf8');
+  const csp = JSON.stringify(JSON.parse(readFileSync(join(FRONT, 'vercel.json'), 'utf8')).headers ?? []);
+  const unlisted = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .map((m) => `'sha256-${createHash('sha256').update(m[1], 'utf8').digest('base64')}'`)
+    .filter((h) => !csp.includes(h));
+  unlisted.length ? fail(`inline script hash not in the vercel.json Content-Security-Policy: ${unlisted.join(', ')}`) : ok('inline scripts allowed by the Content-Security-Policy');
 }
 
 // 4. Production build target.

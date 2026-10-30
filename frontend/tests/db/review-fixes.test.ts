@@ -54,8 +54,8 @@ describe('creating a workspace', () => {
 describe('batch lead import', () => {
   it('returns one result per row in order: created, duplicate within the batch, and a reason for bad rows', async () => {
     const rows = [
-      { name: 'Import One', phone: '9811100201', type: 'buyer', source: 'Import' },
-      { name: 'Import One again', phone: '98111 00201', type: 'buyer', source: 'Import' },
+      { name: 'Import One', phone: '604 555 0201', type: 'buyer', source: 'Import' },
+      { name: 'Import One again', phone: '(604) 555-0201', type: 'buyer', source: 'Import' },
       { name: 'Short Phone', phone: '12345', type: 'buyer', source: 'Import' },
       { name: 'Import Two', email: 'two@example.test', type: 'tenant', source: 'Import' },
     ];
