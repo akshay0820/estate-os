@@ -212,9 +212,9 @@
   align-items: center;
   gap: 10px;
   padding: 0 24px;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: saturate(1.4) blur(12px);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
@@ -2892,7 +2892,6 @@ button.list-row:hover {
   justify-content: center;
   padding: 32px 16px;
   gap: 20px;
-  background: var(--bg);
 }
 
 .auth-brand {
@@ -2948,4 +2947,63 @@ button.list-row:hover {
   background: var(--warning-soft);
   color: var(--warning);
   white-space: nowrap;
+}
+
+/* ───────────────────────── Glass ───────────────────────── */
+/* Panels are translucent over the grid backdrop (base.css), with a blur, a hairline border and a top highlight.
+   On in-flow panels the blur sits on a ::before layer, not the panel itself: backdrop-filter on an element would make
+   it the containing block for position: fixed descendants (the leads bulk bar lives inside a card). */
+
+.card,
+.sidebar {
+  isolation: isolate;
+  background: var(--glass);
+  border-color: var(--glass-border);
+}
+
+.card {
+  position: relative;
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+}
+
+.card::before,
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  pointer-events: none;
+}
+
+.kb-col,
+.mini-stats > div {
+  background: var(--glass);
+  border-color: var(--glass-border);
+}
+
+.kb-card {
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+}
+
+.modal,
+.drawer,
+.menu,
+.panel,
+.cmdk {
+  background: var(--glass-float);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-lg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+
+@media (max-width: 860px) {
+  /* The off-canvas sidebar floats over page content, so it needs the denser floating glass. */
+  .sidebar {
+    background: var(--glass-float);
+  }
 }

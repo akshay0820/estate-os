@@ -80,6 +80,17 @@
   --shadow-lg: 0 24px 64px -16px rgba(20, 20, 18, 0.22), 0 2px 6px rgba(20, 20, 18, 0.06);
   --overlay: rgba(28, 28, 28, 0.32);
   --skeleton: #e8e9e6;
+
+  /* Backdrop grid and glass panels */
+  --grid-line: rgba(28, 28, 28, 0.07);
+  --grid-size: 56px;
+  --glow: rgba(255, 91, 31, 0.1);
+  --speck: rgba(255, 91, 31, 0.35);
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-float: rgba(255, 255, 255, 0.86);
+  --glass-border: rgba(28, 28, 28, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-blur: blur(18px) saturate(1.4);
 }
 
 /* Dark theme: neutral black and grays (no warm tint); orange is kept only as the accent. */
@@ -132,4 +143,14 @@
   --shadow-lg: 0 32px 80px -16px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.04);
   --overlay: rgba(0, 0, 0, 0.6);
   --skeleton: #1a1a1a;
+
+  --grid-line: rgba(255, 255, 255, 0.075);
+  --grid-size: 56px;
+  --glow: rgba(255, 91, 31, 0.24);
+  --speck: rgba(255, 122, 69, 0.7);
+  --glass: rgba(22, 22, 22, 0.52);
+  --glass-float: rgba(18, 18, 18, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --glass-blur: blur(20px) saturate(1.3);
 }

@@ -29,6 +29,51 @@ body {
   transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
 }
 
+/* Backdrop: a fine grid that fades out toward the edges, and an ember glow with sparks rising from the bottom.
+   Both layers are fixed behind the app, so cards and panels read as glass over them. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body::before {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: -1px -1px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 75% at 50% 35%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 35%, #000 35%, transparent 100%);
+}
+
+body::after {
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 78%, var(--speck), transparent),
+    radial-gradient(1px 1px at 27% 88%, var(--speck), transparent),
+    radial-gradient(1.5px 1.5px at 41% 70%, var(--speck), transparent),
+    radial-gradient(1px 1px at 58% 92%, var(--speck), transparent),
+    radial-gradient(2px 2px at 66% 81%, var(--speck), transparent),
+    radial-gradient(1px 1px at 74% 64%, var(--speck), transparent),
+    radial-gradient(1.5px 1.5px at 83% 86%, var(--speck), transparent),
+    radial-gradient(1px 1px at 91% 73%, var(--speck), transparent),
+    radial-gradient(1px 1px at 35% 58%, var(--speck), transparent),
+    radial-gradient(1.5px 1.5px at 52% 76%, var(--speck), transparent),
+    radial-gradient(ellipse 60% 45% at 70% 105%, var(--glow), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 15% 100%, var(--glow), transparent 70%);
+  animation: embers 18s ease-in-out infinite alternate;
+}
+
+@keyframes embers {
+  to {
+    transform: translateY(-14px);
+    opacity: 0.75;
+  }
+}
+
 h1,
 h2,
 h3,
