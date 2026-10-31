@@ -358,7 +358,7 @@ export const useStore = create<Store>()(
             appointments: st.appointments.map((a) => (a.leadId === dropId ? { ...a, leadId: keepId } : a)),
             tasks: st.tasks.map((t) => (t.related?.id === dropId ? { ...t, related: { type: 'lead', id: keepId } } : t)),
           }));
-          get().activity({ leadId: keepId, contactId: keep.contactId, dealId: null, kind: 'note', title: 'Merged duplicate enquiry', body: `${drop.source} enquiry from ${new Date(drop.createdAt).toLocaleDateString('en-IN')} merged; history preserved.`, actor: myActor() });
+          get().activity({ leadId: keepId, contactId: keep.contactId, dealId: null, kind: 'note', title: 'Merged duplicate enquiry', body: `${drop.source} enquiry from ${new Date(drop.createdAt).toLocaleDateString('en-US')} merged; history preserved.`, actor: myActor() });
           get().log('lead.merged', 'lead', keepId, `merged ${dropId}`);
         },
 
@@ -490,7 +490,7 @@ export const useStore = create<Store>()(
           }
           const appt: Appointment = { ...a, id: uid('apt'), orgId: orgId(), createdAt: Date.now(), cancelReason: null, feedback: null };
           set((st) => ({ appointments: [...st.appointments, appt] }));
-          get().activity({ leadId: a.leadId, contactId: a.contactId, dealId: null, kind: 'appointment', title: `${a.title} booked`, body: new Date(a.start).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }), actor: a.source === 'ai' ? { type: 'ai_agent', name: 'AI Follow-Up Agent' } : myActor() });
+          get().activity({ leadId: a.leadId, contactId: a.contactId, dealId: null, kind: 'appointment', title: `${a.title} booked`, body: new Date(a.start).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }), actor: a.source === 'ai' ? { type: 'ai_agent', name: 'AI Follow-Up Agent' } : myActor() });
           get().log('appointment.booked', 'appointment', appt.id);
           if (a.leadId) {
             const l = get().leads.find((x) => x.id === a.leadId);
@@ -527,7 +527,7 @@ export const useStore = create<Store>()(
           const conflict = findConflict(get().appointments.filter((x) => x.orgId === orgId()), { assignedTo: a.assignedTo, start, end, id });
           if (conflict) return { ok: false, conflict };
           set((s) => ({ appointments: mapIn(s.appointments, id, (x) => ({ ...x, start, end, status: 'confirmed' })) }));
-          get().activity({ leadId: a.leadId, contactId: a.contactId, dealId: null, kind: 'appointment', title: `${a.title} rescheduled`, body: new Date(start).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }), actor: myActor() });
+          get().activity({ leadId: a.leadId, contactId: a.contactId, dealId: null, kind: 'appointment', title: `${a.title} rescheduled`, body: new Date(start).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }), actor: myActor() });
           get().log('appointment.rescheduled', 'appointment', id);
           return { ok: true };
         },
@@ -716,8 +716,8 @@ export const useStore = create<Store>()(
             if (!lead.propertyType) { updates.propertyType = 'apartment'; extractedKeys.push('propertyType'); }
             fields.location = lead.locations[0] ?? 'unknown';
             const confident = Math.random() > 0.12;
-            const summary = `Spoke with ${lead.name.split(' ')[0]}. ${lead.intent === 'rent' ? 'Wants to rent' : 'Wants to buy'} a ${updates.bedrooms ?? lead.bedrooms ?? 2} BHK${lead.locations.length ? ` in ${lead.locations.join(' or ')}` : ''}. Timeline ${updates.timeline ?? lead.timeline}. Open to a site visit this weekend.${lead.locations.length ? '' : ' Location not stated — marked unknown.'}`;
-            patch({ status: confident ? 'completed' : 'needs_review', duration, cost: Math.round((duration / 60) * 7.5 * 100) / 100 + 0.8, outcome: confident ? 'Requirements captured' : 'Low confidence extraction', summary, extracted: fields, recording: byAi });
+            const summary = `Spoke with ${lead.name.split(' ')[0]}. ${lead.intent === 'rent' ? 'Wants to rent' : 'Wants to buy'} a ${updates.bedrooms ?? lead.bedrooms ?? 2}-bed home${lead.locations.length ? ` in ${lead.locations.join(' or ')}` : ''}. Timeline ${updates.timeline ?? lead.timeline}. Open to a showing this weekend.${lead.locations.length ? '' : ' Location not stated — marked unknown.'}`;
+            patch({ status: confident ? 'completed' : 'needs_review', duration, cost: Math.round((duration / 60) * 0.12 * 100) / 100 + 0.02, outcome: confident ? 'Requirements captured' : 'Low confidence extraction', summary, extracted: fields, recording: byAi });
             if (confident) {
               get().updateLead(leadId, { ...updates, aiFields: [...new Set([...lead.aiFields, ...extractedKeys])], summary, lastContactAt: Date.now(), firstResponseAt: lead.firstResponseAt ?? Date.now() }, { type: 'ai_agent', name: agent?.name ?? 'AI' });
               if (['new', 'attempting', 'contacted'].includes(lead.status)) get().setLeadStatus(leadId, 'qualified', 'AI qualification call');
@@ -884,7 +884,7 @@ export const useStore = create<Store>()(
           } else if (p.kind === 'book_appointment') {
             const lead = get().leads.find((l) => l.id === p.leadId)!;
             const res = get().bookAppointment({ title: 'Site visit', type: 'viewing', status: 'confirmed', leadId: lead.id, contactId: lead.contactId, propertyId: p.propertyId, assignedTo: lead.assignedTo, start: p.start, end: p.start + 45 * MIN, location: 'Property site', source: 'ai' });
-            toast(res.ok ? { kind: 'success', title: 'Visit booked', body: new Date(p.start).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) } : { kind: 'error', title: 'Slot no longer free', body: 'Conflict detected at execution — the agent will propose new times.' });
+            toast(res.ok ? { kind: 'success', title: 'Visit booked', body: new Date(p.start).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) } : { kind: 'error', title: 'Slot no longer free', body: 'Conflict detected at execution — the agent will propose new times.' });
           } else if (p.kind === 'bulk_export') {
             if (p.entity === 'leads') {
               const leads = get().leads.filter((l) => l.orgId === orgId());
@@ -922,11 +922,11 @@ export const useStore = create<Store>()(
           const source = opts?.source ?? 'Meta Lead Ads';
           const orgContacts = s.contacts.filter((c) => c.orgId === orgId());
           const existing = opts?.duplicate ? orgContacts[0] : undefined;
-          const first = ['Ira', 'Vivaan', 'Myra', 'Kabir', 'Anika', 'Dev', 'Rehan', 'Tara'][Math.floor(Math.random() * 8)];
-          const last = ['Malhotra', 'Bhat', 'Sen', 'Chawla', 'Gill', 'Nanda'][Math.floor(Math.random() * 6)];
+          const first = ['Emma', 'Noah', 'Ava', 'Liam', 'Sofia', 'Mason', 'Chloe', 'Ethan'][Math.floor(Math.random() * 8)];
+          const last = ['Carter', 'Reyes', 'Bennett', 'Nguyen', 'Coleman', 'Hughes'][Math.floor(Math.random() * 6)];
           const payload = existing
             ? { name: existing.name, phone: existing.phone, email: existing.email }
-            : { name: `${first} ${last}`, phone: `+9198${Math.floor(10000000 + Math.random() * 89999999)}`, email: `${first.toLowerCase()}.${last.toLowerCase()}@gmail.com` };
+            : { name: `${first} ${last}`, phone: `+1512${Math.floor(200 + Math.random() * 800)}${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`, email: `${first.toLowerCase()}.${last.toLowerCase()}@gmail.com` };
           const evt: WebhookEvent = { id: uid('evt'), orgId: orgId(), provider: source, type: 'lead.created', status: 'processed', receivedAt: now, attempts: 1, error: null, idempotencyKey: `meta_${Math.random().toString(36).slice(2, 12)}`, signature: opts?.badSignature ? 'invalid' : 'valid' };
           if (opts?.badSignature) {
             evt.status = 'rejected';
@@ -942,10 +942,11 @@ export const useStore = create<Store>()(
             evt.error = `Possible duplicate of ${dupes[0].contact.name} (${dupes[0].reasons.join(', ')})`;
           }
           set((st) => ({ webhookEvents: [evt, ...st.webhookEvents] }));
-          const loc = ['Powai', 'Bandra West', 'Worli', 'Andheri West', 'Thane West'][Math.floor(Math.random() * 5)];
+          const locs = orgId() === 'org_harbor' ? ['La Jolla', 'Pacific Beach', 'North Park'] : ['Downtown', 'Zilker', 'Mueller', 'East Austin', 'Round Rock'];
+          const loc = locs[Math.floor(Math.random() * locs.length)];
           const lead = get().createLead({
-            name: payload.name, phone: payload.phone, email: payload.email, source: source === 'Meta Lead Ads' ? 'Meta Ads' : source, campaign: 'Diwali Homes ’26', type: 'buyer',
-            locations: get().org().city === 'Mumbai' ? [loc] : [], existingContactId: dupes[0]?.contact.id ?? null,
+            name: payload.name, phone: payload.phone, email: payload.email, source: source === 'Meta Lead Ads' ? 'Meta Ads' : source, campaign: 'Spring Buyers ’26', type: 'buyer',
+            locations: [loc], existingContactId: dupes[0]?.contact.id ?? null,
           }, { type: 'integration', name: source });
           get().notify({ kind: 'lead', title: dupes.length ? `Repeat enquiry: ${payload.name}` : `New lead: ${payload.name}`, body: dupes.length ? 'Linked to the existing contact — review for merge.' : `From ${source}. Qualification workflow started.`, link: 'leads' });
           toast({ kind: 'success', title: dupes.length ? 'Repeat enquiry linked' : 'Lead received', body: `${payload.name} · ${source}`, action: { label: 'Open', run: () => { location.hash = `#/leads?id=${lead.id}`; } } });
@@ -958,7 +959,7 @@ export const useStore = create<Store>()(
           if (!e) return;
           set((s) => ({ webhookEvents: mapIn(s.webhookEvents, id, (x) => ({ ...x, status: 'retrying', attempts: x.attempts + 1 })) }));
           setTimeout(() => {
-            const ok = e.provider !== 'MagicBricks' || get().integrations.find((i) => i.provider === 'MagicBricks' && i.orgId === orgId())?.status === 'connected';
+            const ok = e.provider !== 'Realtor.com' || get().integrations.find((i) => i.provider === 'Realtor.com' && i.orgId === orgId())?.status === 'connected';
             set((s) => ({ webhookEvents: mapIn(s.webhookEvents, id, (x) => ({ ...x, status: ok ? 'processed' : x.attempts >= 5 ? 'dead_letter' : 'failed', error: ok ? null : x.error })) }));
             toast({ kind: ok ? 'success' : 'error', title: ok ? 'Event reprocessed' : 'Replay failed', body: ok ? `Idempotency key ${e.idempotencyKey} — no duplicate created.` : e.error ?? undefined });
           }, 1200);
@@ -1047,7 +1048,7 @@ export const useStore = create<Store>()(
       };
     },
     {
-      name: 'estate-os:data:v3', // v3: the eight real agents and the workspace country
+      name: 'estate-os:data:v4', // v4: US demo agencies (USD, Austin and San Diego)
       // Live mode keeps business data in memory only; nothing tenant-owned is written to the browser.
       storage: createJSONStorage(() => (LIVE ? { getItem: () => null, setItem: () => undefined, removeItem: () => undefined } : localStorage)),
       partialize: (s) => {

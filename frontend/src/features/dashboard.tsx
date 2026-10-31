@@ -69,7 +69,7 @@ const BLOCKS = [8, 10, 12, 14, 16, 18, 20, 22];
 function fromServer(r: DashboardMetrics, range: RangeKey): DashView {
   const tz = r.range.timezone;
   const fmt = (iso: string) =>
-    new Intl.DateTimeFormat('en-IN', range === '7d' ? { weekday: 'short', timeZone: tz } : range === '12m' ? { month: 'short', timeZone: tz } : { day: 'numeric', month: 'short', timeZone: tz }).format(new Date(iso));
+    new Intl.DateTimeFormat('en-US', range === '7d' ? { weekday: 'short', timeZone: tz } : range === '12m' ? { month: 'short', timeZone: tz } : { day: 'numeric', month: 'short', timeZone: tz }).format(new Date(iso));
   const heat = [1, 2, 3, 4, 5, 6, 7].map((dow) => BLOCKS.map((_, b) => r.arrivals.find((a) => a.dow === dow && a.block === b)?.n ?? 0));
   const k = r.kpis;
   return {
@@ -277,7 +277,7 @@ export function Dashboard() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow={`[ ${org.name} · ${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })} ]`}
+        eyebrow={`[ ${org.name} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })} ]`}
         title={<>{greeting}, <span className="serif">{me.name.split(' ')[0]}</span></>}
         sub={
           org.outboundPaused
@@ -316,7 +316,7 @@ export function Dashboard() {
               {k.label}
               <span className="period">{periodLabel}</span>
             </div>
-            <div className="kpi-value"><CountUp value={k.value} format={k.fmt ?? ((v) => Math.round(v).toLocaleString('en-IN'))} /></div>
+            <div className="kpi-value"><CountUp value={k.value} format={k.fmt ?? ((v) => Math.round(v).toLocaleString('en-US'))} /></div>
             <div className="kpi-foot">
               <span className="row" style={{ gap: 6 }}>
                 {compare ? <><Delta value={k.key === 'conv' ? k.value - k.prev : change(k.value, k.prev)} /> <span>vs prev</span></> : k.sub ? <span>{k.sub}</span> : <span title={k.def}><Info size={11} /> definition</span>}
@@ -411,7 +411,7 @@ export function Dashboard() {
           {upcoming.length === 0 ? <Empty icon={<CalendarDays size={18} />} title="No upcoming visits" /> : upcoming.map((a) => (
             <button key={a.id} className="list-row" onClick={() => navigate('appointments', { id: a.id })}>
               <div style={{ width: 46, textAlign: 'center' }}>
-                <div className="mono faint" style={{ fontSize: 10.5, textTransform: 'uppercase' }}>{sameDay(a.start, now) ? 'Today' : new Date(a.start).toLocaleDateString('en-IN', { weekday: 'short' })}</div>
+                <div className="mono faint" style={{ fontSize: 10.5, textTransform: 'uppercase' }}>{sameDay(a.start, now) ? 'Today' : new Date(a.start).toLocaleDateString('en-US', { weekday: 'short' })}</div>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{fmtTime(a.start)}</div>
               </div>
               <div className="grow" style={{ minWidth: 0 }}>

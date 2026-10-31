@@ -46,7 +46,7 @@ export function ActivityPage() {
               const lead = a.leadId ? leads.get(a.leadId) : undefined;
               return (
                 <div key={a.id}>
-                  {day && <div className="menu-label" style={{ padding: '16px 0 10px' }}>{sameDay(a.at, Date.now()) ? 'Today' : new Date(a.at).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
+                  {day && <div className="menu-label" style={{ padding: '16px 0 10px' }}>{sameDay(a.at, Date.now()) ? 'Today' : new Date(a.at).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
                   <div className="tl-item">
                     <span className={cx('tl-icon', a.actor.type === 'ai_agent' && 'ai')}>{ICON[a.kind]}</span>
                     <div style={{ minWidth: 0 }}>

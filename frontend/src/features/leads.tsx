@@ -215,7 +215,7 @@ export function LeadsPage({ params }: { params: URLSearchParams }) {
       toast({ kind: 'error', title: 'Columns not recognised', body: `${headerProblem} Found: ${Object.keys(rows[0]).slice(0, 8).join(', ')}.` });
       return;
     }
-    if (rows.length > IMPORT_MAX_ROWS) toast({ kind: 'warning', title: 'Large file', body: `Only the first ${IMPORT_MAX_ROWS.toLocaleString('en-IN')} rows are imported per file.` });
+    if (rows.length > IMPORT_MAX_ROWS) toast({ kind: 'warning', title: 'Large file', body: `Only the first ${IMPORT_MAX_ROWS.toLocaleString('en-US')} rows are imported per file.` });
     setImporting(true);
     importControl.current = { cancelled: false };
     const r = await attempt(() => actions.importLeads(rows, { control: importControl.current, onProgress: (done, total) => setImportProgress({ done, total }) }))
@@ -517,7 +517,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
   const contacts = useOrgList('contacts');
   const members = useOrgList('members');
   const org = useOrg();
-  const [f, setF] = useState({ name: '', phone: '', email: '', source: 'Walk-in', type: 'buyer' as Lead['type'], budget: '', location: '', propertyType: '', bedrooms: '', timeline: '', notes: '', assignedTo: 'auto' });
+  const [f, setF] = useState({ name: '', phone: '', email: '', source: 'Website form', type: 'buyer' as Lead['type'], budget: '', location: '', propertyType: '', bedrooms: '', timeline: '', notes: '', assignedTo: 'auto' });
   const [consent, setConsent] = useState<Channel[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [choice, setChoice] = useState<'link' | 'create' | null>(null);
@@ -601,7 +601,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
           <Field label="Email" error={errors.email}><Input value={f.email} onChange={set('email')} invalid={!!errors.email} placeholder="name@example.com" type="email" /></Field>
           <Field label="Source">
             <Select value={f.source} onChange={set('source')}>
-              {['Walk-in', 'Referral', 'Website form', '99acres', 'MagicBricks', 'Housing.com', 'Meta Ads', 'Google Ads', 'Phone enquiry'].map((s) => <option key={s}>{s}</option>)}
+              {['Website form', 'Zillow', 'Realtor.com', 'Redfin', 'Meta Ads', 'Google Ads', 'Referral', 'Open house', 'Phone call', 'Walk-in'].map((s) => <option key={s}>{s}</option>)}
             </Select>
           </Field>
           <Field
@@ -621,7 +621,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
             <Input value={f.budget} onChange={set('budget')} invalid={!!errors.budget} inputMode="decimal" placeholder={f.type === 'tenant' ? '85000' : '160'} />
           </Field>
           <Field label="Preferred locality" hint="Leave blank if unknown.">
-            <Input value={f.location} onChange={set('location')} list="lead-localities" placeholder="e.g. Powai" />
+            <Input value={f.location} onChange={set('location')} list="lead-localities" placeholder="e.g. Downtown" />
             <datalist id="lead-localities">{localities.map((l) => <option key={l} value={l} />)}</datalist>
           </Field>
           <Field label="Property type">
@@ -633,7 +633,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
           <Field label="Bedrooms">
             <Select value={f.bedrooms} onChange={set('bedrooms')}>
               <option value="">Unknown</option>
-              {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} BHK</option>)}
+              {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} bed</option>)}
             </Select>
           </Field>
           <Field label="Timeline">
@@ -866,7 +866,7 @@ function Overview({ lead, onEdit, canEdit }: { lead: Lead; onEdit: () => void; c
             ['Intent', <span key="i" style={{ textTransform: 'capitalize' }}>{lead.intent}</span>],
             ['Budget', lead.budgetMax ? <>{lead.budgetMin ? `${money(lead.budgetMin)} – ` : 'Up to '}{money(lead.budgetMax)}{lead.intent === 'rent' ? '/mo' : ''} {ai('budget')}</> : <span className="faint">Unknown</span>],
             ['Locations', lead.locations.length ? <>{lead.locations.map((l) => <span key={l} className="tag">{l}</span>)} {ai('locations')}</> : <span className="faint">Unknown</span>],
-            ['Configuration', lead.propertyType || lead.bedrooms != null ? <>{lead.bedrooms != null ? `${lead.bedrooms} BHK ` : ''}{lead.propertyType ?? <span className="faint">type unknown</span>} {ai('bedrooms') || ai('propertyType')}</> : <span className="faint">Unknown</span>],
+            ['Configuration', lead.propertyType || lead.bedrooms != null ? <>{lead.bedrooms != null ? `${lead.bedrooms}-bed ` : ''}{lead.propertyType ?? <span className="faint">type unknown</span>} {ai('bedrooms') || ai('propertyType')}</> : <span className="faint">Unknown</span>],
             ['Timeline', lead.timeline ? <>{lead.timeline} {ai('timeline')}</> : <span className="faint">Unknown</span>],
             ['Must-haves', lead.amenities.length ? lead.amenities.map((a) => <span key={a} className="tag">{a}</span>) : <span className="faint">None stated</span>],
           ]}
@@ -981,7 +981,7 @@ function RequirementsForm({ lead, onDone }: { lead: Lead; onDone: () => void }) 
         <Field label="Bedrooms">
           <Select value={f.bedrooms} onChange={(e) => setF({ ...f, bedrooms: e.target.value })}>
             <option value="">Unknown</option>
-            {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} BHK</option>)}
+            {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} bed</option>)}
           </Select>
         </Field>
         <Field label="Timeline">
@@ -1043,7 +1043,7 @@ function Matches({ lead, onBook }: { lead: Lead; onBook: (propertyId: string) =>
               <b className="truncate">{m.property.title}</b>
               <span className="mono faint" style={{ fontSize: 11 }}>{m.property.ref}</span>
             </div>
-            <div className="faint" style={{ fontSize: 12.5 }}>{m.property.locality} · {money(m.property.price)}{m.property.listing === 'rent' ? '/mo' : ''} · {m.property.area.toLocaleString('en-IN')} sq ft</div>
+            <div className="faint" style={{ fontSize: 12.5 }}>{m.property.locality} · {money(m.property.price)}{m.property.listing === 'rent' ? '/mo' : ''} · {m.property.area.toLocaleString('en-US')} sq ft</div>
             <div className="row wrap mt-8" style={{ gap: 5 }}>
               {m.reasons.map((r) => <span key={r} className="badge badge-success"><Check size={10} /> {r}</span>)}
               {m.gaps.map((g) => <span key={g} className={cx('badge', g.includes('verified') ? 'badge-warning' : '')}>{g}</span>)}

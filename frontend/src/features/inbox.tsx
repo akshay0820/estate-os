@@ -179,7 +179,7 @@ function Thread({ conv }: { conv: Conversation }) {
                 { label: 'Mark pending', icon: <Clock size={14} />, onSelect: () => setConversationStatus(conv.id, 'pending') },
                 'sep',
                 { heading: 'Test (simulate inbound)' },
-                { label: 'Customer replies with requirements', icon: <CornerDownLeft size={14} />, onSelect: () => receiveMessage(conv.id, 'Looking for a 3 BHK in Powai, budget around 2.2 Cr, can move in 3 months') },
+                { label: 'Customer replies with requirements', icon: <CornerDownLeft size={14} />, onSelect: () => receiveMessage(conv.id, 'Looking for a 3 bed in Downtown, budget around $850k, can move in 3 months') },
                 { label: 'Customer asks a question', icon: <CornerDownLeft size={14} />, onSelect: () => receiveMessage(conv.id, 'Is parking included? Can I visit this weekend?') },
                 { label: 'Customer sends STOP', icon: <CircleSlash size={14} />, danger: true, onSelect: () => receiveMessage(conv.id, 'STOP') },
               ]}
@@ -194,7 +194,7 @@ function Thread({ conv }: { conv: Conversation }) {
           lastDay = m.at;
           return (
             <div key={m.id} style={{ display: 'contents' }}>
-              {showDay && <div className="msg system" style={{ margin: '6px 0' }}><span className="mono" style={{ fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase' }}>{sameDay(m.at, Date.now()) ? 'Today' : new Date(m.at).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}</span></div>}
+              {showDay && <div className="msg system" style={{ margin: '6px 0' }}><span className="mono" style={{ fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase' }}>{sameDay(m.at, Date.now()) ? 'Today' : new Date(m.at).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' })}</span></div>}
               <Bubble m={m} />
             </div>
           );

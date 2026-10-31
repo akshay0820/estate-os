@@ -235,12 +235,12 @@ export function matchProperties(lead: Lead, properties: Property[], now = Date.n
     }
     if (lead.bedrooms != null) {
       if (p.bedrooms === lead.bedrooms) {
-        reasons.push(`${p.bedrooms} BHK as requested`);
+        reasons.push(`${p.bedrooms} bed as requested`);
         score += 10;
       } else if (Math.abs(p.bedrooms - lead.bedrooms) === 1) {
-        gaps.push(`${p.bedrooms} BHK vs ${lead.bedrooms} requested`);
+        gaps.push(`${p.bedrooms} bed vs ${lead.bedrooms} requested`);
         score += 3;
-      } else gaps.push(`${p.bedrooms} BHK`);
+      } else gaps.push(`${p.bedrooms} bed`);
     }
     const amen = lead.amenities.filter((a) => p.amenities.includes(a));
     if (amen.length) {
@@ -363,28 +363,28 @@ export function isOptOut(text: string): boolean {
 // leaves anything it can't find as unknown instead of guessing.
 
 const LOCALITY_WORDS = [
-  'Bandra West', 'Powai', 'Andheri West', 'Worli', 'Lower Parel', 'Juhu', 'Thane West',
-  'Chembur', 'Goregaon East', 'Malad West', 'Vashi', 'Kharghar', 'Kandivali', 'Santacruz',
+  'Downtown', 'Zilker', 'Travis Heights', 'Hyde Park', 'Mueller', 'East Austin', 'The Domain',
+  'Cedar Park', 'Round Rock', 'Pflugerville', 'La Jolla', 'Pacific Beach', 'North Park', 'Carmel Valley', 'Chula Vista',
 ];
 
 export function extractRequirements(text: string) {
   const fields: Record<string, string> = {};
   const lower = text.toLowerCase();
-  const budget = lower.match(/(\d+(?:\.\d+)?)\s*(crore|cr|lakh|lac|l|million|m|k)\b/);
+  const budget = lower.replace(/[$,]/g, '').match(/(\d+(?:\.\d+)?)\s*(crore|cr|lakh|lac|l|million|m|k)\b/);
   if (budget) {
     const n = parseFloat(budget[1]);
     const unit = budget[2];
     const mult = /^c/.test(unit) ? 1e7 : /^l/.test(unit) ? 1e5 : /^m/.test(unit) ? 1e6 : 1e3;
     fields.budget = String(Math.round(n * mult));
   }
-  const bhk = lower.match(/(\d)\s*bhk/);
+  const bhk = lower.match(/(\d)\s*(?:bhk|-?\s*bed(?:room)?s?|br)\b/);
   if (bhk) fields.bedrooms = bhk[1];
   const loc = LOCALITY_WORDS.find((l) => lower.includes(l.toLowerCase().split(' ')[0]));
   if (loc) fields.location = loc;
   if (/rent|lease/.test(lower)) fields.intent = 'rent';
   else if (/buy|purchase|invest/.test(lower)) fields.intent = 'buy';
   if (/villa/.test(lower)) fields.propertyType = 'villa';
-  else if (/apartment|flat|bhk/.test(lower)) fields.propertyType = 'apartment';
+  else if (/apartment|condo|flat|bhk/.test(lower)) fields.propertyType = 'apartment';
   if (/immediate|asap|this month|urgent/.test(lower)) fields.timeline = 'Immediate';
   else if (/(\d)\s*months?/.test(lower)) fields.timeline = `${lower.match(/(\d)\s*months?/)![1]} months`;
   return fields;

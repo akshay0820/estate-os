@@ -145,7 +145,7 @@ export function PropertyMatchesPanel({ lead, onBook }: { lead: Lead; onBook: (pr
                       <Badge tone={MATCH_STATUS[m.status].tone}>{MATCH_STATUS[m.status].label}</Badge>
                     </div>
                     <div className="faint" style={{ fontSize: 12.5 }}>
-                      {p.locality}{p.city ? `, ${p.city}` : ''} · {price(p)} · {p.property_type} · {p.bedrooms} bed · {p.area_value.toLocaleString('en-IN')} {p.area_unit}
+                      {p.locality}{p.city ? `, ${p.city}` : ''} · {price(p)} · {p.property_type} · {p.bedrooms} bed · {p.area_value.toLocaleString('en-US')} {p.area_unit}
                     </div>
                   </div>
                   <div className="stack stack-sm" style={{ alignItems: 'flex-end' }}>

@@ -63,7 +63,7 @@ function DemoCallsPage({ params }: { params: URLSearchParams }) {
         }
       />
       <div className="grid g-kpi" style={{ marginBottom: 16 }}>
-        <Mini icon={<PhoneOutgoing size={14} />} label="Calls · 30 days" value={last30.length.toLocaleString('en-IN')} sub={`${last30.filter((c) => c.agentId).length} by AI`} />
+        <Mini icon={<PhoneOutgoing size={14} />} label="Calls · 30 days" value={last30.length.toLocaleString('en-US')} sub={`${last30.filter((c) => c.agentId).length} by AI`} />
         <Mini icon={<PhoneIncoming size={14} />} label="Connect rate" value={pct(connected.length / (last30.length || 1), 0)} sub={`${last30.filter((c) => c.status === 'no_answer').length} unanswered`} />
         <Mini icon={<Timer size={14} />} label="Avg talk time" value={duration(Math.round(talk / (connected.length || 1)))} sub={`${Math.round(talk / 3600)} h total`} />
         <Mini icon={<CircleDollarSign size={14} />} label="Telephony + AI cost" value={moneyPrecise(cost)} sub="Estimated · provider-reported" />

@@ -360,7 +360,7 @@ function Row({ label, values, max, color, title }: { label: string; values: numb
 
 /* ─────────── Animated number ─────────── */
 
-export function CountUp({ value, format = (v: number) => Math.round(v).toLocaleString('en-IN') }: { value: number; format?: (v: number) => string }) {
+export function CountUp({ value, format = (v: number) => Math.round(v).toLocaleString('en-US') }: { value: number; format?: (v: number) => string }) {
   const [shown, setShown] = useState(value);
   const from = useRef(value);
   useEffect(() => {

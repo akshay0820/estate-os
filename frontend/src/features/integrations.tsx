@@ -34,7 +34,7 @@ function LiveIntegrations() {
   -H 'X-Estate-Event-Id: evt_123' \
   -H 'X-Estate-Timestamp: <unix seconds>' \
   -H 'X-Estate-Signature: sha256=<hex HMAC of "timestamp.body">' \
-  -d '{"name":"Riya Shah","phone":"9820012345","source":"Website form","locations":["Powai"]}'`;
+  -d '{"name":"Emma Carter","phone":"(512) 555-0142","source":"Website form","locations":["Downtown"]}'`;
   return (
     <div className="page">
       <PageHeader

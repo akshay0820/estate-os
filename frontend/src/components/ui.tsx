@@ -409,7 +409,7 @@ export function Pager({ page, pageSize, total, onPage, onPageSize }: { page: num
   return (
     <div className="pager">
       <span className="num">
-        {from}–{to} of {total.toLocaleString('en-IN')}
+        {from}–{to} of {total.toLocaleString('en-US')}
       </span>
       {onPageSize && (
         <Select selectSize="sm" value={pageSize} onChange={(e) => onPageSize(Number(e.target.value))} style={{ width: 92 }} aria-label="Rows per page">

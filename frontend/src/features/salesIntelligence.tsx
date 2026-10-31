@@ -28,8 +28,8 @@ export function fmtMetric(v: number | undefined | null, unit: string, currency?:
   if (unit === 'rate') return `${(v * 100).toFixed(1)}%`;
   if (unit === 'minutes') return v >= 120 ? `${(v / 60).toFixed(1)} h` : `${Math.round(v)} min`;
   if (unit === 'days') return `${v.toFixed(1)} d`;
-  if (unit === 'money') return `${currency ?? ''} ${Math.round(v).toLocaleString('en-IN')}`.trim();
-  return Math.round(v).toLocaleString('en-IN');
+  if (unit === 'money') return `${currency ?? ''} ${Math.round(v).toLocaleString('en-US')}`.trim();
+  return Math.round(v).toLocaleString('en-US');
 }
 
 function change(r: live.SiRow, unit: string) {

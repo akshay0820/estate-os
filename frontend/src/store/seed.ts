@@ -90,18 +90,18 @@ const IMAGE_BY_TYPE: Record<PropertyType, number[]> = {
   retail: [9, 8],
 };
 
-export const AMENITIES = ['Parking', 'Gym', 'Pool', 'Sea view', 'Clubhouse', 'Security', 'Power backup', 'Pet friendly', 'Balcony', 'Lift'];
+export const AMENITIES = ['Garage', 'Gym', 'Pool', 'Lake view', 'Clubhouse', 'Gated', 'In-unit laundry', 'Pet friendly', 'Balcony', 'Elevator'];
 
 const FIRST = [
-  'Aarav', 'Vihaan', 'Ishaan', 'Reyansh', 'Advait', 'Ananya', 'Diya', 'Saanvi', 'Aditi', 'Kiara',
-  'Rahul', 'Nikhil', 'Siddharth', 'Karan', 'Varun', 'Pooja', 'Sneha', 'Riya', 'Tanvi', 'Nisha',
-  'Farhan', 'Zoya', 'Imran', 'Ayesha', 'Daniel', 'Sarah', 'Cyrus', 'Zara', 'Manish', 'Deepa',
-  'Harsh', 'Kavya', 'Yash', 'Shreya', 'Aman', 'Natasha', 'Rohit', 'Lakshmi', 'Gautam', 'Ira',
+  'James', 'Olivia', 'Liam', 'Emma', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason', 'Isabella',
+  'Lucas', 'Mia', 'Carlos', 'Sofia', 'Diego', 'Camila', 'Marcus', 'Aaliyah', 'Andre', 'Jasmine',
+  'Daniel', 'Grace', 'Kevin', 'Hannah', 'Ryan', 'Chloe', 'Priya', 'Arjun', 'Wei', 'Mei',
+  'Tyler', 'Madison', 'Brandon', 'Emily', 'Jordan', 'Taylor', 'Nathan', 'Rachel', 'Owen', 'Natalie',
 ];
 const LAST = [
-  'Sharma', 'Verma', 'Patel', 'Gupta', 'Malhotra', 'Bhatia', 'Khanna', 'Reddy', 'Pillai', 'Menon',
-  'Joshi', 'Kulkarni', 'Deshpande', 'Agarwal', 'Chopra', 'Sethi', 'Fernandes', 'D’Souza', 'Khan', 'Shaikh',
-  'Iyer', 'Rao', 'Banerjee', 'Mukherjee', 'Sinha', 'Bajaj', 'Thakur', 'Wadia', 'Mistry', 'Kapadia',
+  'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
+  'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee',
+  'Thompson', 'White', 'Harris', 'Clark', 'Lewis', 'Robinson', 'Walker', 'Nguyen', 'Patel', 'Kim',
 ];
 
 interface OrgConfig {
@@ -118,62 +118,63 @@ export const ORG_CONFIGS: OrgConfig[] = [
   {
     seed: 7,
     scale: 1,
-    domain: 'skylinerealty.in',
+    domain: 'skylinerealty.com',
     org: {
       id: 'org_skyline',
       name: 'Skyline Realty',
       slug: 'skyline-realty',
-      city: 'Mumbai',
-      timezone: 'Asia/Kolkata',
-      currency: 'INR',
-      country: 'IN',
-      businessHours: { start: 9, end: 20, days: [1, 2, 3, 4, 5, 6] },
-      callingHours: { start: 9, end: 21 },
+      city: 'Austin, TX',
+      timezone: 'America/Chicago',
+      currency: 'USD',
+      country: 'US',
+      businessHours: { start: 9, end: 19, days: [1, 2, 3, 4, 5, 6] },
+      callingHours: { start: 9, end: 20 },
       outboundPaused: false,
       leadStages: ['new', 'attempting', 'contacted', 'qualified', 'matching', 'visit_scheduled', 'visit_completed', 'negotiation', 'won', 'lost', 'nurture'],
       assignment: 'by_locality',
       slaMinutes: 5,
       webhookSecretVersion: 3,
     },
+    // psf: sale price per sq ft (USD); rentPsf: monthly rent per sq ft (USD).
     localities: [
-      { name: 'Bandra West', psf: 52000, rentPsf: 110 },
-      { name: 'Juhu', psf: 48000, rentPsf: 100 },
-      { name: 'Worli', psf: 58000, rentPsf: 120 },
-      { name: 'Lower Parel', psf: 44000, rentPsf: 95 },
-      { name: 'Powai', psf: 27000, rentPsf: 62 },
-      { name: 'Andheri West', psf: 29000, rentPsf: 70 },
-      { name: 'Goregaon East', psf: 21000, rentPsf: 52 },
-      { name: 'Chembur', psf: 24000, rentPsf: 55 },
-      { name: 'Thane West', psf: 15000, rentPsf: 38 },
-      { name: 'Vashi', psf: 16000, rentPsf: 40 },
+      { name: 'Downtown', psf: 700, rentPsf: 3.4 },
+      { name: 'Zilker', psf: 650, rentPsf: 3.0 },
+      { name: 'Travis Heights', psf: 600, rentPsf: 2.8 },
+      { name: 'Hyde Park', psf: 520, rentPsf: 2.5 },
+      { name: 'Mueller', psf: 480, rentPsf: 2.4 },
+      { name: 'East Austin', psf: 450, rentPsf: 2.4 },
+      { name: 'The Domain', psf: 430, rentPsf: 2.5 },
+      { name: 'Cedar Park', psf: 270, rentPsf: 1.7 },
+      { name: 'Round Rock', psf: 250, rentPsf: 1.6 },
+      { name: 'Pflugerville', psf: 235, rentPsf: 1.55 },
     ],
-    projects: ['Oberoi Sky City', 'Lodha Park', 'Hiranandani Gardens', 'Rustomjee Seasons', 'Kalpataru Radiance', 'Godrej Platinum', 'Runwal Greens', 'Raheja Vivarea', 'Sunteck City', 'Piramal Aranya', 'Ekta Tripolis', 'Shapoorji Vicinia'],
+    projects: ['Riverside Lofts', 'Cedar Ridge', 'The Lamar', 'Mueller Commons', 'Zilker Terrace', 'Eastside Flats', 'Bouldin Court', 'Hyde Park Place', 'Domain Heights', 'Travis Heights Villas', 'Congress Avenue Lofts', 'Lakeway Shores'],
     team: [
-      { name: 'Aanya Kapoor', email: 'aanya@skylinerealty.in', phone: '+919820011122', role: 'owner', title: 'Founder & Principal Broker', status: 'active', hue: 22, localities: [] },
-      { name: 'Rohan Mehta', email: 'rohan@skylinerealty.in', phone: '+919820011123', role: 'admin', title: 'Head of Operations', status: 'active', hue: 200, localities: [] },
-      { name: 'Priya Nair', email: 'priya@skylinerealty.in', phone: '+919820011124', role: 'manager', title: 'Sales Manager', status: 'active', hue: 40, localities: [] },
-      { name: 'Kabir Shah', email: 'kabir@skylinerealty.in', phone: '+919820011125', role: 'agent', title: 'Senior Consultant', status: 'active', hue: 150, localities: ['Bandra West', 'Juhu', 'Andheri West'] },
-      { name: 'Meera Iyer', email: 'meera@skylinerealty.in', phone: '+919820011126', role: 'agent', title: 'Property Consultant', status: 'active', hue: 330, localities: ['Powai', 'Goregaon East', 'Chembur'] },
-      { name: 'Arjun Desai', email: 'arjun@skylinerealty.in', phone: '+919820011127', role: 'agent', title: 'Luxury Specialist', status: 'active', hue: 260, localities: ['Worli', 'Lower Parel'] },
-      { name: 'Sana Qureshi', email: 'sana@skylinerealty.in', phone: '+919820011128', role: 'agent', title: 'Property Consultant', status: 'active', hue: 180, localities: ['Thane West', 'Vashi'] },
-      { name: 'Vikram Rao', email: 'vikram@skylinerealty.in', phone: '+919820011129', role: 'finance', title: 'Finance Controller', status: 'active', hue: 90, localities: [] },
-      { name: 'Neha Joshi', email: 'neha.joshi@gmail.com', phone: '', role: 'agent', title: 'Property Consultant', status: 'invited', hue: 300, localities: [] },
+      { name: 'Jordan Ellis', email: 'jordan@skylinerealty.com', phone: '+15125550101', role: 'owner', title: 'Founder & Managing Broker', status: 'active', hue: 22, localities: [] },
+      { name: 'Michael Torres', email: 'michael@skylinerealty.com', phone: '+15125550102', role: 'admin', title: 'Head of Operations', status: 'active', hue: 200, localities: [] },
+      { name: 'Rachel Kim', email: 'rachel@skylinerealty.com', phone: '+15125550103', role: 'manager', title: 'Sales Manager', status: 'active', hue: 40, localities: [] },
+      { name: 'David Chen', email: 'david@skylinerealty.com', phone: '+15125550104', role: 'agent', title: 'Senior Agent', status: 'active', hue: 150, localities: ['Downtown', 'Zilker', 'Travis Heights'] },
+      { name: 'Sarah Mitchell', email: 'sarah@skylinerealty.com', phone: '+15125550105', role: 'agent', title: 'Realtor', status: 'active', hue: 330, localities: ['Hyde Park', 'Mueller', 'East Austin'] },
+      { name: 'Marcus Johnson', email: 'marcus@skylinerealty.com', phone: '+15125550106', role: 'agent', title: 'Luxury Specialist', status: 'active', hue: 260, localities: ['The Domain'] },
+      { name: 'Elena Ramirez', email: 'elena@skylinerealty.com', phone: '+15125550107', role: 'agent', title: 'Realtor', status: 'active', hue: 180, localities: ['Cedar Park', 'Round Rock', 'Pflugerville'] },
+      { name: 'Robert Hayes', email: 'robert@skylinerealty.com', phone: '+15125550108', role: 'finance', title: 'Finance Controller', status: 'active', hue: 90, localities: [] },
+      { name: 'Ashley Brooks', email: 'ashley.brooks@gmail.com', phone: '', role: 'agent', title: 'Realtor', status: 'invited', hue: 300, localities: [] },
     ],
   },
   {
     seed: 19,
     scale: 0.3,
-    domain: 'harborhomes.in',
+    domain: 'harborhomes.com',
     org: {
       id: 'org_harbor',
       name: 'Harbor Homes',
       slug: 'harbor-homes',
-      city: 'Pune',
-      timezone: 'Asia/Kolkata',
-      currency: 'INR',
-      country: 'IN',
-      businessHours: { start: 10, end: 19, days: [1, 2, 3, 4, 5, 6] },
-      callingHours: { start: 10, end: 20 },
+      city: 'San Diego, CA',
+      timezone: 'America/Los_Angeles',
+      currency: 'USD',
+      country: 'US',
+      businessHours: { start: 9, end: 18, days: [1, 2, 3, 4, 5, 6] },
+      callingHours: { start: 9, end: 20 },
       outboundPaused: false,
       leadStages: ['new', 'attempting', 'contacted', 'qualified', 'matching', 'visit_scheduled', 'visit_completed', 'negotiation', 'won', 'lost', 'nurture'],
       assignment: 'round_robin',
@@ -181,62 +182,70 @@ export const ORG_CONFIGS: OrgConfig[] = [
       webhookSecretVersion: 1,
     },
     localities: [
-      { name: 'Koregaon Park', psf: 16000, rentPsf: 45 },
-      { name: 'Baner', psf: 11000, rentPsf: 32 },
-      { name: 'Kharadi', psf: 10000, rentPsf: 30 },
-      { name: 'Hinjewadi', psf: 8000, rentPsf: 25 },
-      { name: 'Aundh', psf: 12500, rentPsf: 34 },
+      { name: 'La Jolla', psf: 1150, rentPsf: 4.4 },
+      { name: 'Pacific Beach', psf: 900, rentPsf: 3.9 },
+      { name: 'North Park', psf: 720, rentPsf: 3.4 },
+      { name: 'Carmel Valley', psf: 680, rentPsf: 3.1 },
+      { name: 'Chula Vista', psf: 460, rentPsf: 2.7 },
     ],
-    projects: ['Panchshil Towers', 'Kolte Patil Life Republic', 'Godrej Infinity', 'Amanora Park', 'VTP Blue Waters'],
+    projects: ['Harbor View', 'Bayside Residences', 'Mission Hills Court', 'Torrey Pines Villas', 'Seaport Lofts'],
     team: [
-      { name: 'Aanya Kapoor', email: 'aanya@skylinerealty.in', phone: '+919820011122', role: 'admin', title: 'Partner (shared workspace)', status: 'active', hue: 22, localities: [] },
-      { name: 'Omkar Patil', email: 'omkar@harborhomes.in', phone: '+919850022211', role: 'owner', title: 'Managing Director', status: 'active', hue: 210, localities: [] },
-      { name: 'Ritika Sawant', email: 'ritika@harborhomes.in', phone: '+919850022212', role: 'agent', title: 'Consultant', status: 'active', hue: 340, localities: ['Koregaon Park', 'Aundh'] },
-      { name: 'Tejas Gokhale', email: 'tejas@harborhomes.in', phone: '+919850022213', role: 'agent', title: 'Consultant', status: 'active', hue: 120, localities: ['Baner', 'Hinjewadi', 'Kharadi'] },
+      { name: 'Jordan Ellis', email: 'jordan@skylinerealty.com', phone: '+15125550101', role: 'admin', title: 'Partner (shared workspace)', status: 'active', hue: 22, localities: [] },
+      { name: 'Laura Bennett', email: 'laura@harborhomes.com', phone: '+16195550121', role: 'owner', title: 'Managing Broker', status: 'active', hue: 210, localities: [] },
+      { name: 'Chris Morales', email: 'chris@harborhomes.com', phone: '+16195550122', role: 'agent', title: 'Realtor', status: 'active', hue: 340, localities: ['La Jolla', 'Pacific Beach'] },
+      { name: 'Tyler Brooks', email: 'tyler@harborhomes.com', phone: '+16195550123', role: 'agent', title: 'Realtor', status: 'active', hue: 120, localities: ['North Park', 'Carmel Valley', 'Chula Vista'] },
     ],
   },
 ];
 
 const SOURCES: [string, number][] = [
-  ['99acres', 22],
-  ['MagicBricks', 16],
-  ['Housing.com', 12],
+  ['Zillow', 22],
+  ['Realtor.com', 14],
+  ['Redfin', 10],
   ['Meta Ads', 18],
   ['Google Ads', 12],
-  ['Website form', 10],
-  ['Referral', 7],
-  ['Walk-in', 3],
+  ['Website form', 12],
+  ['Referral', 8],
+  ['Open house', 4],
 ];
 
+// Monthly spend in USD.
 const SOURCE_META: Record<string, { kind: MarketingSource['kind']; spend: number }> = {
-  '99acres': { kind: 'portal', spend: 85000 },
-  MagicBricks: { kind: 'portal', spend: 65000 },
-  'Housing.com': { kind: 'portal', spend: 48000 },
-  'Meta Ads': { kind: 'ads', spend: 120000 },
-  'Google Ads': { kind: 'ads', spend: 90000 },
-  'Website form': { kind: 'website', spend: 15000 },
+  Zillow: { kind: 'portal', spend: 4500 },
+  'Realtor.com': { kind: 'portal', spend: 2500 },
+  Redfin: { kind: 'portal', spend: 1200 },
+  'Meta Ads': { kind: 'ads', spend: 3500 },
+  'Google Ads': { kind: 'ads', spend: 2800 },
+  'Website form': { kind: 'website', spend: 300 },
   Referral: { kind: 'referral', spend: 0 },
-  'Walk-in': { kind: 'offline', spend: 0 },
+  'Open house': { kind: 'offline', spend: 250 },
 };
 
 const CAMPAIGNS: Record<string, string[]> = {
-  'Meta Ads': ['Diwali Homes ’26', 'Powai 2BHK Lookalike', 'Luxury Sea-view Retarget'],
-  'Google Ads': ['Brand Search', '“flats in mumbai” Generic', 'Rental Intent'],
-  '99acres': ['Featured Listing'],
-  MagicBricks: ['Premium Slot'],
+  'Meta Ads': ['Spring Buyers ’26', 'Downtown Condo Lookalike', 'Luxury Home Retarget'],
+  'Google Ads': ['Brand Search', '“homes for sale austin” Generic', 'Rental Intent'],
+  Zillow: ['Premier Agent'],
+  'Realtor.com': ['Connections Plus'],
 };
+
+/** $650K / $1.25M for purchase budgets, $2,800/mo for rents. */
+function usdBudget(amount: number, monthly: boolean) {
+  if (monthly) return `$${Math.round(amount).toLocaleString('en-US')}/mo`;
+  return amount >= 1e6 ? `$${(amount / 1e6).toFixed(2).replace(/\.?0+$/, '')}M` : `$${Math.round(amount / 1e3)}K`;
+}
 
 function personName(rand: Rand) {
   return `${pick(rand, FIRST)} ${pick(rand, LAST)}`;
 }
 
 function phoneFor(rand: Rand) {
-  return `+91${pick(rand, ['98', '99', '97', '90', '88', '70', '77'])}${String(intBetween(rand, 10000000, 99999999))}`;
+  // Valid North American format: the area code and exchange start with 2-9.
+  return `+1${pick(rand, ['512', '737', '619', '858', '210', '214', '713', '415'])}${intBetween(rand, 200, 999)}${String(intBetween(rand, 0, 9999)).padStart(4, '0')}`;
 }
 
 function emailFor(name: string, rand: Rand) {
   const [f, l] = name.toLowerCase().replace(/[’']/g, '').split(' ');
-  return `${f}${pick(rand, ['.', '', '_'])}${l}${rand() < 0.3 ? intBetween(rand, 1, 99) : ''}@${pick(rand, ['gmail.com', 'gmail.com', 'outlook.com', 'yahoo.co.in', 'icloud.com'])}`;
+  return `${f}${pick(rand, ['.', '', '_'])}${l}${rand() < 0.3 ? intBetween(rand, 1, 99) : ''}@${pick(rand, ['gmail.com', 'gmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'])}`;
 }
 
 /** Age-aware status: older leads are more likely to have reached a terminal stage. */
@@ -282,24 +291,24 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const listing: Property['listing'] = rand() < 0.72 ? 'sale' : 'rent';
     const type: PropertyType = pickWeighted(rand, [['apartment', 14], ['penthouse', 2], ['villa', 2], ['office', 2], ['retail', 1], ['plot', 1]]);
     const bedrooms = ['office', 'retail', 'plot'].includes(type) ? 0 : type === 'penthouse' ? intBetween(rand, 4, 5) : type === 'villa' ? intBetween(rand, 3, 5) : pickWeighted(rand, [[1, 3], [2, 6], [3, 4], [4, 1]]);
-    const area = type === 'plot' ? intBetween(rand, 2000, 6000) : bedrooms ? Math.round((bedrooms * between(rand, 330, 520) + 150) / 10) * 10 : intBetween(rand, 600, 2400);
-    const price = listing === 'sale' ? Math.round((area * loc.psf * between(rand, 0.9, 1.15)) / 1e5) * 1e5 : Math.round((area * loc.rentPsf * between(rand, 0.9, 1.15)) / 1000) * 1000;
+    const area = type === 'plot' ? intBetween(rand, 5000, 12000) : bedrooms ? Math.round((bedrooms * between(rand, 420, 650) + 350) / 10) * 10 : intBetween(rand, 800, 4000);
+    const price = listing === 'sale' ? Math.round((area * loc.psf * (type === 'plot' ? 0.25 : 1) * between(rand, 0.9, 1.15)) / 5000) * 5000 : Math.round((area * loc.rentPsf * between(rand, 0.9, 1.15)) / 50) * 50;
     const project = pick(rand, cfg.projects);
     const createdAt = now - intBetween(rand, 5, 320) * DAY;
     const status: Property['status'] = pickWeighted(rand, [['active', 14], ['under_offer', 2], ['reserved', 1], [listing === 'sale' ? 'sold' : 'let', 2], ['draft', 1]]);
     const verifiedAgo = pickWeighted(rand, [[intBetween(rand, 1, 12), 6], [intBetween(rand, 13, 28), 3], [intBetween(rand, 35, 90), 2]]);
     const verified = rand() > 0.08;
     const title =
-      type === 'office' ? `Grade A office, ${project}` :
-      type === 'retail' ? `High-street retail, ${loc.name}` :
-      type === 'plot' ? `Residential plot, ${loc.name}` :
-      `${bedrooms} BHK ${type === 'apartment' ? '' : type + ' '}at ${project}`.replace('  ', ' ');
+      type === 'office' ? `Class A office, ${project}` :
+      type === 'retail' ? `Street-front retail, ${loc.name}` :
+      type === 'plot' ? `Residential lot, ${loc.name}` :
+      `${bedrooms}-bed ${type === 'apartment' ? 'condo' : type === 'villa' ? 'single-family home' : type} at ${project}`;
     properties.push({
       id: id('prop'),
       orgId,
       ref: `${cfg.org.slug.slice(0, 2).toUpperCase()}-${String(1040 + i)}`,
       title,
-      description: `${title} in ${loc.name}. ${area.toLocaleString('en-IN')} sq ft carpet, ${pick(rand, ['east-facing', 'west-facing', 'corner unit', 'high floor', 'garden-facing'])}, ${pick(rand, ['newly renovated', 'ready to move', 'possession in 2027', 'well maintained'])}.`,
+      description: `${title} in ${loc.name}. ${area.toLocaleString('en-US')} sq ft, ${pick(rand, ['south-facing', 'corner unit', 'top floor', 'backs onto greenbelt', 'updated kitchen'])}, ${pick(rand, ['recently renovated', 'move-in ready', 'new construction (2027)', 'well maintained'])}.`,
       listing,
       type,
       status,
@@ -347,8 +356,8 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const knows = PROGRESSED.includes(status) || rand() < 0.45;
     const bedrooms = knows ? pickWeighted(rand, [[1, 2], [2, 6], [3, 4], [4, 1]]) : null;
     const rentish = intent === 'rent' || intent === 'let';
-    const baseBudget = bedrooms ? bedrooms * 420 * (rentish ? loc.rentPsf : loc.psf) : null;
-    const budgetMax = knows && baseBudget ? Math.round((baseBudget * between(rand, 0.9, 1.35)) / (rentish ? 1000 : 1e5)) * (rentish ? 1000 : 1e5) : null;
+    const baseBudget = bedrooms ? (bedrooms * 600 + 300) * (rentish ? loc.rentPsf : loc.psf) : null;
+    const budgetMax = knows && baseBudget ? Math.round((baseBudget * between(rand, 0.9, 1.35)) / (rentish ? 50 : 5000)) * (rentish ? 50 : 5000) : null;
     const contactId = id('con');
     const assignedTo = rand() < 0.95 ? assignFor(loc.name) : null;
     const consent = (): Contact['consents'][Channel] => pickWeighted(rand, [['granted', 8], ['unknown', 2], ['revoked', 0.3]]);
@@ -365,7 +374,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
       source,
       assignedTo,
       consents: { phone: consent(), whatsapp: consent(), sms: consent(), email: consent() },
-      tags: rand() < 0.2 ? [pick(rand, ['NRI', 'Hot', 'Repeat client', 'Pre-approved loan', 'Investor'])] : [],
+      tags: rand() < 0.2 ? [pick(rand, ['Relocating', 'Hot', 'Repeat client', 'Pre-approved mortgage', 'Investor'])] : [],
       createdAt,
       lastContactedAt: status === 'new' ? null : createdAt + between(rand, 0.1, Math.max(0.2, ageDays * 0.7)) * DAY,
     });
@@ -385,7 +394,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
       assignedTo,
       score: 0,
       scoreReasons: [],
-      budgetMin: budgetMax ? Math.round((budgetMax * 0.75) / 1e4) * 1e4 : null,
+      budgetMin: budgetMax ? Math.round((budgetMax * 0.75) / (rentish ? 50 : 5000)) * (rentish ? 50 : 5000) : null,
       budgetMax,
       locations,
       propertyType,
@@ -410,7 +419,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     lead.missing = missingFields(lead);
     lead.lastContactAt = contacts[contacts.length - 1].lastContactedAt;
     if (knows) {
-      lead.summary = `${type === 'tenant' ? 'Looking to rent' : type === 'investor' ? 'Investor looking for' : 'Looking to buy'} ${bedrooms ? `a ${bedrooms} BHK` : 'a home'} in ${locations.join(' or ') || cfg.org.city}${budgetMax ? `, budget up to ₹${rentish ? (budgetMax / 1000).toFixed(0) + 'k/mo' : (budgetMax / 1e7 >= 1 ? (budgetMax / 1e7).toFixed(2) + ' Cr' : (budgetMax / 1e5).toFixed(0) + ' L')}` : ''}. Timeline: ${timeline}.`;
+      lead.summary = `${type === 'tenant' ? 'Looking to rent' : type === 'investor' ? 'Investor looking for' : 'Looking to buy'} ${bedrooms ? `a ${bedrooms}-bed home` : 'a home'} in ${locations.join(' or ') || cfg.org.city}${budgetMax ? `, budget up to ${usdBudget(budgetMax, rentish)}` : ''}. Timeline: ${timeline}.`;
     }
     leads.push(lead);
 
@@ -494,7 +503,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     appointments.push({
       id: id('apt'),
       orgId,
-      title: type === 'viewing' ? `Site visit — ${prop.title.replace(/ at .*/, '')}` : type === 'valuation' ? 'Property valuation' : 'Requirement consultation',
+      title: type === 'viewing' ? `Showing — ${prop.title.replace(/ at .*/, '')}` : type === 'valuation' ? 'Property valuation' : 'Requirement consultation',
       type,
       status: past ? pickWeighted(rand, [['completed', 8], ['no_show', 1], ['cancelled', 1]]) : pickWeighted(rand, [['confirmed', 7], ['pending', 2], ['requested', 1]]),
       leadId: l.id,
@@ -506,7 +515,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
       location: type === 'viewing' ? `${prop.title.split(' at ')[1] ?? prop.locality}, ${prop.locality}` : type === 'consultation' ? 'Skyline office, BKC' : prop.locality,
       source: rand() < 0.55 ? 'ai' : 'user',
       cancelReason: null,
-      feedback: past && rand() < 0.5 ? pick(rand, ['Liked the layout, concerned about parking.', 'Wants to bring family for a second visit.', 'Price feels high for the floor.', 'Very keen — asked about loan options.']) : null,
+      feedback: past && rand() < 0.5 ? pick(rand, ['Liked the layout, concerned about parking.', 'Wants to bring family for a second visit.', 'Price feels high for the area.', 'Very keen — asked about mortgage options.']) : null,
       createdAt: start - intBetween(rand, 1, 6) * DAY,
     });
   }
@@ -517,7 +526,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     if (start > now - 2 * DAY) continue;
     const prop = properties.find((p) => p.locality === l.locations[0]) ?? pick(rand, properties);
     appointments.push({
-      id: id('apt'), orgId, title: `Site visit — ${prop.title.replace(/ at .*/, '')}`, type: 'viewing', status: 'completed', leadId: l.id, contactId: l.contactId,
+      id: id('apt'), orgId, title: `Showing — ${prop.title.replace(/ at .*/, '')}`, type: 'viewing', status: 'completed', leadId: l.id, contactId: l.contactId,
       propertyId: prop.id, assignedTo: l.assignedTo, start, end: start + 45 * MIN, location: prop.locality, source: rand() < 0.5 ? 'ai' : 'user', cancelReason: null,
       feedback: null, createdAt: start - intBetween(rand, 1, 4) * DAY,
     });
@@ -526,18 +535,18 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   /* Tasks */
   const tasks: Task[] = [];
   const taskTitles = [
-    'Call back about loan pre-approval',
+    'Call back about mortgage pre-approval',
     'Send floor plans and brochure',
-    'Confirm site visit time with owner',
-    'Collect KYC documents',
-    'Follow up after site visit',
-    'Re-verify availability with owner',
-    'Prepare offer letter draft',
+    'Confirm showing time with the seller',
+    'Collect proof of funds',
+    'Follow up after the showing',
+    'Re-verify availability with the listing agent',
+    'Prepare offer draft',
     'Schedule second viewing with family',
     'Share comparable sale prices',
     'Update lead requirements after call',
-    'Negotiate maintenance charges',
-    'Book token amount paperwork',
+    'Review HOA documents',
+    'Prepare earnest money paperwork',
   ];
   const openLeads = leads.filter((l) => !['won', 'lost', 'nurture'].includes(l.status));
   for (let i = 0; i < Math.round(46 * cfg.scale) + 4; i++) {
@@ -562,14 +571,14 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   /* Agents */
   // The eight agents the product ships (same names, order and roles as the live AI agents page).
   const agents: Agent[] = [
-    { id: id('agt'), orgId, name: 'AI Lead Intake Agent', type: 'lead_intake', purpose: 'Captures every enquiry from forms, portals and imports, checks it, spots repeat enquiries and assigns an owner.', status: 'active', autonomy: 'bounded_auto', tools: ['create_lead', 'find_duplicates', 'assign_owner', 'request_human_handoff'], channel: null, model: 'claude-opus-5-5', version: 3, dailyBudget: 300, maxSteps: 6, escalation: ['Possible duplicate with conflicting details'], createdAt: now - 160 * DAY },
-    { id: id('agt'), orgId, name: 'AI Voice Calling Agent', type: 'voice_calling', purpose: 'Calls new enquiries (with AI-call consent, inside calling hours) to capture budget, area, configuration and timeline.', status: 'active', autonomy: 'bounded_auto', tools: ['get_lead', 'update_lead_fields', 'create_task', 'request_human_handoff'], channel: 'phone', model: 'claude-opus-5-5', version: 7, dailyBudget: 2500, maxSteps: 12, escalation: ['Caller asks for a human', 'Legal or pricing negotiation', 'Low extraction confidence'], createdAt: now - 150 * DAY },
-    { id: id('agt'), orgId, name: 'AI Sales & Qualification Agent', type: 'qualification', purpose: 'Scores how ready each lead is to buy or rent, explains the score and lists the details still missing.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'score_lead', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 4, dailyBudget: 500, maxSteps: 6, escalation: ['Borderline score', 'Conflicting requirements'], createdAt: now - 140 * DAY },
-    { id: id('agt'), orgId, name: 'AI Property Matching Agent', type: 'property_matching', purpose: 'Ranks active, verified listings against each lead’s hard requirements and explains every match.', status: 'active', autonomy: 'suggest_only', tools: ['get_lead', 'search_properties', 'get_verified_property_details'], channel: null, model: 'claude-opus-5-5', version: 3, dailyBudget: 400, maxSteps: 6, escalation: ['No listing meets the hard requirements'], createdAt: now - 120 * DAY },
-    { id: id('agt'), orgId, name: 'AI Follow-Up Agent', type: 'follow_up', purpose: 'Drafts the next message from real matches and missing details; a person approves and sends it.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'draft_customer_message', 'send_approved_message', 'create_task'], channel: 'whatsapp', model: 'claude-opus-5-5', version: 5, dailyBudget: 600, maxSteps: 6, escalation: ['Lead replied with an objection', 'No channel has consent'], createdAt: now - 110 * DAY },
-    { id: id('agt'), orgId, name: 'AI Appointment Agent', type: 'appointment', purpose: 'Offers only verified free times and books site visits without double-booking; reschedules and cancels.', status: 'active', autonomy: 'approval_required', tools: ['check_appointment_availability', 'request_appointment_booking', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 2, dailyBudget: 300, maxSteps: 5, escalation: ['No free slot in the requested window'], createdAt: now - 90 * DAY },
-    { id: id('agt'), orgId, name: 'AI CRM & Data Intelligence Agent', type: 'data_quality', purpose: 'Finds duplicates and inconsistent records, proposes fixes and merges; a person approves every change.', status: 'active', autonomy: 'suggest_only', tools: ['scan_records', 'propose_merge', 'propose_fix'], channel: null, model: 'claude-opus-5-5', version: 2, dailyBudget: 300, maxSteps: 4, escalation: ['High-severity finding'], createdAt: now - 60 * DAY },
-    { id: id('agt'), orgId, name: 'AI Sales Intelligence Agent', type: 'sales_intelligence', purpose: 'Computes the funnel, sources and team metrics with fixed definitions and suggests where to focus. Never commits to terms.', status: 'active', autonomy: 'suggest_only', tools: ['run_metrics', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 1, dailyBudget: 300, maxSteps: 5, escalation: ['Any contractual question'], createdAt: now - 30 * DAY },
+    { id: id('agt'), orgId, name: 'AI Lead Intake Agent', type: 'lead_intake', purpose: 'Captures every enquiry from forms, portals and imports, checks it, spots repeat enquiries and assigns an owner.', status: 'active', autonomy: 'bounded_auto', tools: ['create_lead', 'find_duplicates', 'assign_owner', 'request_human_handoff'], channel: null, model: 'claude-opus-5-5', version: 3, dailyBudget: 5, maxSteps: 6, escalation: ['Possible duplicate with conflicting details'], createdAt: now - 160 * DAY },
+    { id: id('agt'), orgId, name: 'AI Voice Calling Agent', type: 'voice_calling', purpose: 'Calls new enquiries (with AI-call consent, inside calling hours) to capture budget, area, configuration and timeline.', status: 'active', autonomy: 'bounded_auto', tools: ['get_lead', 'update_lead_fields', 'create_task', 'request_human_handoff'], channel: 'phone', model: 'claude-opus-5-5', version: 7, dailyBudget: 40, maxSteps: 12, escalation: ['Caller asks for a human', 'Legal or pricing negotiation', 'Low extraction confidence'], createdAt: now - 150 * DAY },
+    { id: id('agt'), orgId, name: 'AI Sales & Qualification Agent', type: 'qualification', purpose: 'Scores how ready each lead is to buy or rent, explains the score and lists the details still missing.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'score_lead', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 4, dailyBudget: 8, maxSteps: 6, escalation: ['Borderline score', 'Conflicting requirements'], createdAt: now - 140 * DAY },
+    { id: id('agt'), orgId, name: 'AI Property Matching Agent', type: 'property_matching', purpose: 'Ranks active, verified listings against each lead’s hard requirements and explains every match.', status: 'active', autonomy: 'suggest_only', tools: ['get_lead', 'search_properties', 'get_verified_property_details'], channel: null, model: 'claude-opus-5-5', version: 3, dailyBudget: 6, maxSteps: 6, escalation: ['No listing meets the hard requirements'], createdAt: now - 120 * DAY },
+    { id: id('agt'), orgId, name: 'AI Follow-Up Agent', type: 'follow_up', purpose: 'Drafts the next message from real matches and missing details; a person approves and sends it.', status: 'active', autonomy: 'approval_required', tools: ['get_lead', 'draft_customer_message', 'send_approved_message', 'create_task'], channel: 'sms', model: 'claude-opus-5-5', version: 5, dailyBudget: 10, maxSteps: 6, escalation: ['Lead replied with an objection', 'No channel has consent'], createdAt: now - 110 * DAY },
+    { id: id('agt'), orgId, name: 'AI Appointment Agent', type: 'appointment', purpose: 'Offers only verified free times and books showings without double-booking; reschedules and cancels.', status: 'active', autonomy: 'approval_required', tools: ['check_appointment_availability', 'request_appointment_booking', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 2, dailyBudget: 5, maxSteps: 5, escalation: ['No free slot in the requested window'], createdAt: now - 90 * DAY },
+    { id: id('agt'), orgId, name: 'AI CRM & Data Intelligence Agent', type: 'data_quality', purpose: 'Finds duplicates and inconsistent records, proposes fixes and merges; a person approves every change.', status: 'active', autonomy: 'suggest_only', tools: ['scan_records', 'propose_merge', 'propose_fix'], channel: null, model: 'claude-opus-5-5', version: 2, dailyBudget: 5, maxSteps: 4, escalation: ['High-severity finding'], createdAt: now - 60 * DAY },
+    { id: id('agt'), orgId, name: 'AI Sales Intelligence Agent', type: 'sales_intelligence', purpose: 'Computes the funnel, sources and team metrics with fixed definitions and suggests where to focus. Never commits to terms.', status: 'active', autonomy: 'suggest_only', tools: ['run_metrics', 'create_task'], channel: null, model: 'claude-opus-5-5', version: 1, dailyBudget: 5, maxSteps: 5, escalation: ['Any contractual question'], createdAt: now - 30 * DAY },
   ];
   const agentOf = (type: Agent['type']) => agents.find((a) => a.type === type)!;
 
@@ -579,9 +588,9 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     steps: steps.map(([label, kind], i) => ({ key: `s${i}`, label, kind })),
   });
   const workflows: Workflow[] = [
-    wf('new_lead', 'New lead acknowledgement & qualification', 'Acknowledge within minutes, then run an AI qualification call during calling hours.', 'lead.created.v1', [['Lead created', 'trigger'], ['Check consent & calling hours', 'condition'], ['Send WhatsApp acknowledgement', 'action'], ['AI qualification call', 'ai'], ['Validate & save extracted fields', 'action'], ['Create follow-up task', 'action']], ['Lead opts out', 'Human takes over', 'Lead disqualified']),
+    wf('new_lead', 'New lead acknowledgement & qualification', 'Acknowledge within minutes, then run an AI qualification call during calling hours.', 'lead.created.v1', [['Lead created', 'trigger'], ['Check consent & calling hours', 'condition'], ['Send text acknowledgement', 'action'], ['AI qualification call', 'ai'], ['Validate & save extracted fields', 'action'], ['Create follow-up task', 'action']], ['Lead opts out', 'Human takes over', 'Lead disqualified']),
     wf('no_answer', 'No-answer callback sequence', 'Retry unanswered calls with backoff — at most three attempts, then hand to a person.', 'call.completed.v1 (no_answer)', [['Call not answered', 'trigger'], ['Wait 2 hours', 'delay'], ['Retry call', 'ai'], ['Wait 1 day', 'delay'], ['Final attempt', 'ai'], ['Create callback task', 'action']], ['Lead replies', 'Max 3 attempts reached', 'Opt-out']),
-    wf('recommend', 'Qualified lead property recommendations', 'Match verified inventory and send the top three with reasons.', 'lead.qualified.v1', [['Lead qualified', 'trigger'], ['Match properties', 'ai'], ['Exclude stale listings', 'condition'], ['Draft recommendation', 'ai'], ['Request approval', 'action'], ['Send via WhatsApp', 'action']], ['Lead books visit', 'Opt-out']),
+    wf('recommend', 'Qualified lead property recommendations', 'Match verified inventory and send the top three with reasons.', 'lead.qualified.v1', [['Lead qualified', 'trigger'], ['Match properties', 'ai'], ['Exclude stale listings', 'condition'], ['Draft recommendation', 'ai'], ['Request approval', 'action'], ['Send by text', 'action']], ['Lead books visit', 'Opt-out']),
     wf('reminder', 'Appointment confirmation & reminder', 'Confirm on booking, remind 24 hours and 2 hours before the visit.', 'appointment.booked.v1', [['Appointment booked', 'trigger'], ['Send confirmation', 'action'], ['Wait until T-24h', 'delay'], ['Send reminder', 'action'], ['Wait until T-2h', 'delay'], ['Send final reminder', 'action']], ['Appointment cancelled', 'Rescheduled']),
     wf('feedback', 'Post-site-visit feedback', 'Ask for feedback after a completed visit and update the lead.', 'appointment.completed.v1', [['Visit completed', 'trigger'], ['Wait 3 hours', 'delay'], ['Ask for feedback', 'action'], ['Summarize reply', 'ai'], ['Update lead', 'action']], ['No reply in 48h']),
     wf('reengage', 'Stale lead re-engagement', 'Re-engage nurture leads with new matching inventory, where permitted.', 'schedule (weekly)', [['Weekly schedule', 'trigger'], ['Select nurture leads with consent', 'condition'], ['Find new matches', 'ai'], ['Send update', 'action']], ['Opt-out', 'Lead responds'], 'paused'),
@@ -609,7 +618,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
       if (status === 'waiting_approval') steps.push({ label: 'Approval requested', status: 'run', ms: 0 });
       runs.push({
         id: id('run'), orgId, kind: 'agent', refId: a.id, name: a.name, status, trigger: pick(rand, ['lead.created.v1', 'conversation.message_received.v1', 'call.completed.v1', 'manual']),
-        startedAt, durationMs: steps.reduce((s, x) => s + x.ms, 0), cost: (tokens / 1000) * (a.model.includes('haiku') ? 0.12 : 0.6), tokens, steps, leadId: l.id, attempt: 1,
+        startedAt, durationMs: steps.reduce((s, x) => s + x.ms, 0), cost: (tokens / 1000) * (a.model.includes('haiku') ? 0.002 : 0.015), tokens, steps, leadId: l.id, attempt: 1,
         error: status === 'failed' ? 'Output failed schema validation' : status === 'dead_letter' ? 'Provider timeout after 3 attempts' : null, correlationId: correlationId(),
       });
     } else {
@@ -619,11 +628,11 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
         label: s.label,
         status: failAt === -1 ? (status === 'skipped' && idx > 1 ? 'pending' : status === 'skipped' && idx === 1 ? 'skip' : 'ok') : idx < failAt ? 'ok' : idx === failAt ? 'fail' : 'pending',
         ms: s.kind === 'ai' ? intBetween(rand, 2000, 90000) : intBetween(rand, 20, 600),
-        note: idx === failAt ? pick(rand, ['WhatsApp provider returned 503', 'Voice provider timeout (30s)', 'Calendar sync rejected: token expired']) : status === 'skipped' && idx === 1 ? pick(rand, ['Outside calling hours — deferred', 'Contact opted out of WhatsApp']) : undefined,
+        note: idx === failAt ? pick(rand, ['SMS provider returned 503', 'Voice provider timeout (30s)', 'Calendar sync rejected: token expired']) : status === 'skipped' && idx === 1 ? pick(rand, ['Outside calling hours — deferred', 'Contact opted out of texts']) : undefined,
       }));
       runs.push({
         id: id('run'), orgId, kind: 'workflow', refId: w.id, name: w.name, status, trigger: w.trigger, startedAt,
-        durationMs: steps.reduce((s, x) => s + x.ms, 0), cost: rand() * 6, tokens: 0, steps, leadId: l.id, attempt: status === 'dead_letter' ? 3 : 1,
+        durationMs: steps.reduce((s, x) => s + x.ms, 0), cost: rand() * 0.08, tokens: 0, steps, leadId: l.id, attempt: status === 'dead_letter' ? 3 : 1,
         error: failAt >= 0 ? steps[failAt].note ?? 'Step failed' : null, correlationId: correlationId(),
       });
     }
@@ -640,7 +649,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const bhk = l.bedrooms ?? 2;
     const agentM = members.find((m) => m.id === l.assignedTo);
     const script = idx % 6;
-    const channel: Channel = script === 3 ? 'email' : script === 5 ? 'sms' : 'whatsapp';
+    const channel: Channel = script === 3 ? 'email' : script === 1 ? 'whatsapp' : 'sms';
     const t0 = Math.max(l.createdAt, now - 6 * DAY) + intBetween(rand, 0, 3) * HOUR;
     let t = t0;
     const msgs: Message[] = [];
@@ -650,35 +659,35 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     };
     let owner: Conversation['owner'] = 'ai';
     if (script === 0) {
-      push('in', 'contact', `Hi, saw the ${bhk}BHK in ${loc} on ${l.source}. Is it still available?`, 0);
-      push('out', 'ai', `Hi ${first}, thanks for reaching out — this is the ${cfg.org.name} assistant. That ${bhk} BHK was last verified available ${intBetween(rand, 2, 9)} days ago. Could you share your budget and when you're hoping to move?`, 40_000);
-      push('in', 'contact', `Budget around ${l.budgetMax ? (l.budgetMax >= 1e7 ? (l.budgetMax / 1e7).toFixed(1) + ' Cr' : Math.round(l.budgetMax / 1e5) + ' lakh') : '1.5 Cr'}, looking in the next 2-3 months`);
-      push('out', 'ai', `Noted — I've saved that to your enquiry. ${agentM?.name.split(' ')[0] ?? 'Our consultant'} handles ${loc}. Would Saturday 11am or 4pm work for a site visit?`, 50_000);
+      push('in', 'contact', `Hi, saw the ${bhk}-bed in ${loc} on ${l.source}. Is it still available?`, 0);
+      push('out', 'ai', `Hi ${first}, thanks for reaching out — this is the ${cfg.org.name} assistant. That ${bhk}-bed home was last verified available ${intBetween(rand, 2, 9)} days ago. Could you share your budget and when you're hoping to move?`, 40_000);
+      push('in', 'contact', `Budget around ${l.budgetMax ? usdBudget(l.budgetMax, false) : '$600K'}, looking in the next 2-3 months`);
+      push('out', 'ai', `Noted — I've saved that to your enquiry. ${agentM?.name.split(' ')[0] ?? 'Our consultant'} handles ${loc}. Would Saturday 11am or 4pm work for a showing?`, 50_000);
       push('in', 'contact', 'Saturday 11 works');
       push('system', 'system', 'Visit request sent for approval — booking is confirmed only after availability check.', 20_000);
     } else if (script === 1) {
-      push('in', 'contact', `Hello, I'm looking for a ${bhk} BHK on rent near ${loc}. Pet friendly please 🐕`, 0);
+      push('in', 'contact', `Hello, I'm looking for a ${bhk}-bed rental near ${loc}. Pet friendly please 🐕`, 0);
       push('out', 'ai', `Hi ${first}! I can help with that. I found ${intBetween(rand, 2, 4)} verified pet-friendly rentals in ${loc}. What monthly rent range should I search within?`, 35_000);
-      push('in', 'contact', 'Up to 85k. Also need parking');
-      push('out', 'ai', 'Got it — up to ₹85k/month with parking. Sharing the top matches now.', 45_000);
+      push('in', 'contact', 'Up to $3,000. Also need parking');
+      push('out', 'ai', 'Got it — up to $3,000/month with parking. Sharing the top matches now.', 45_000);
     } else if (script === 2) {
       owner = 'human';
-      push('in', 'contact', `Is the price negotiable for the ${loc} flat? My father wants to speak to someone directly.`, 0);
+      push('in', 'contact', `Is the price negotiable for the ${loc} house? My father wants to speak to someone directly.`, 0);
       push('system', 'system', `Escalated to ${agentM?.name ?? 'a consultant'}: pricing negotiation is outside AI scope.`, 30_000);
       push('internal', 'user', `Owner open to ~3% on quick close. Don't commit in writing yet.`, 6 * MIN, members[2]?.name);
       push('out', 'user', `Hi ${first}, ${agentM?.name.split(' ')[0] ?? 'I'} here. Happy to talk — I'll call your father at 6pm today if that works?`, 8 * MIN);
       push('in', 'contact', 'Yes 6pm is fine, thank you');
     } else if (script === 3) {
-      push('in', 'contact', `Dear team,\n\nI am an NRI based in Dubai, interested in investment options in ${loc} under ₹3 Cr. Could you share options with rental yield details?\n\nRegards,\n${c.name}`, 0);
+      push('in', 'contact', `Dear team,\n\nI'm relocating from London for work and looking at investment options in ${loc} under $1.5M. Could you share options with rental yield details?\n\nRegards,\n${c.name}`, 0);
       push('out', 'ai', `Dear ${first},\n\nThank you for your enquiry. I've shortlisted verified listings in ${loc} within your budget. Rental yield estimates depend on current lease data, so ${agentM?.name ?? 'our consultant'} will confirm figures personally.\n\nWould a video walkthrough this week be helpful?`, 3 * MIN);
     } else if (script === 4) {
       push('out', 'ai', `Hi ${first}, following up on your enquiry for ${loc}. Are you still looking?`, 0);
       push('in', 'contact', 'STOP');
-      push('system', 'system', `Opt-out recorded for WhatsApp. Pending follow-ups cancelled.`, 10_000);
-      c.consents.whatsapp = 'revoked';
+      push('system', 'system', `Opt-out recorded for SMS. Pending follow-ups cancelled.`, 10_000);
+      c.consents.sms = 'revoked';
       owner = 'unassigned';
     } else {
-      push('out', 'system', `Reminder: your site visit is tomorrow at 11:00 am. Reply C to confirm or R to reschedule.`, 0, 'Appointment reminder');
+      push('out', 'system', `Reminder: your showing is tomorrow at 11:00 am. Reply C to confirm or R to reschedule.`, 0, 'Appointment reminder');
       push('in', 'contact', 'C');
       push('out', 'system', 'Confirmed — see you tomorrow.', 30_000, 'Appointment reminder');
     }
@@ -703,7 +712,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     calls.push({
       id: id('call'), orgId, leadId: l.id, contactId: l.contactId, direction: rand() < 0.85 ? 'outbound' : 'inbound', status,
       agentId: byAi ? qa.id : null, userId: byAi ? null : l.assignedTo, startedAt, duration: dur,
-      cost: byAi ? Math.round((dur / 60) * 7.5 * 100) / 100 + (dur ? 0.8 : 0.2) : Math.round((dur / 60) * 1.2 * 100) / 100,
+      cost: byAi ? Math.round((dur / 60) * 0.12 * 100) / 100 + (dur ? 0.02 : 0.01) : Math.round((dur / 60) * 0.02 * 100) / 100,
       outcome: status === 'completed' ? pick(rand, ['Qualified', 'Requirements captured', 'Visit requested', 'Callback requested', 'Not interested']) : status === 'needs_review' ? 'Low confidence extraction' : null,
       summary: status === 'completed' ? l.summary ?? `Spoke with ${l.name.split(' ')[0]}; requirements partially captured. Asked for a callback in the evening.` : null,
       extracted: status === 'completed' && l.budgetMax ? { budget: String(l.budgetMax), location: l.locations[0] ?? 'unknown', bedrooms: String(l.bedrooms ?? 'unknown'), timeline: l.timeline ?? 'unknown' } : null,
@@ -723,7 +732,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   }
   if (openDeal)
     approvals.push({ id: id('apr'), orgId, action: 'deal_stage_change', summary: `Move “${openDeal.title}” to Under contract`, risk: 'high', requestedBy: { type: 'ai_agent', name: 'AI Sales Intelligence Agent' }, status: 'pending', createdAt: now - 2 * HOUR, expiresAt: now + 22 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'deal_stage', dealId: openDeal.id, to: 'under_contract' } });
-  approvals.push({ id: id('apr'), orgId, action: 'request_appointment_booking', summary: `Book site visit for ${visitLead.name} — Saturday 11:00`, risk: 'medium', requestedBy: { type: 'ai_agent', name: 'AI Follow-Up Agent' }, status: 'pending', createdAt: now - 42 * MIN, expiresAt: now + 3 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'book_appointment', leadId: visitLead.id, propertyId: properties[0].id, start: nextSaturday(now, 11) } });
+  approvals.push({ id: id('apr'), orgId, action: 'request_appointment_booking', summary: `Book showing for ${visitLead.name} — Saturday 11:00`, risk: 'medium', requestedBy: { type: 'ai_agent', name: 'AI Follow-Up Agent' }, status: 'pending', createdAt: now - 42 * MIN, expiresAt: now + 3 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'book_appointment', leadId: visitLead.id, propertyId: properties[0].id, start: nextSaturday(now, 11) } });
   approvals.push({ id: id('apr'), orgId, action: 'bulk_export', summary: 'Export 412 lead records to CSV', risk: 'high', requestedBy: { type: 'user', name: members[2]?.name ?? 'Manager' }, status: 'pending', createdAt: now - 5 * HOUR, expiresAt: now + 19 * HOUR, decidedBy: null, decidedAt: null, note: null, payload: { kind: 'bulk_export', entity: 'leads', rows: 412 } });
   for (let i = 0; i < 9; i++) {
     const st = pickWeighted(rand, [['approved', 6], ['rejected', 2], ['expired', 1]] as const);
@@ -749,26 +758,26 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   const integrations: Integration[] = [
     integ('Website form', 'lead_source', 'Embeddable enquiry form with signed submissions.', 'connected', ['leads:write'], ['Lead intake', 'Spam scoring']),
     integ('Generic webhook', 'lead_source', 'HMAC-signed endpoint for any portal or ad platform.', 'connected', ['leads:write'], ['Lead intake', 'Idempotency']),
-    integ('99acres', 'lead_source', 'Listing portal enquiries via partner API.', 'connected', ['enquiries:read'], ['Lead intake']),
-    integ('MagicBricks', 'lead_source', 'Listing portal enquiries via email parsing.', 'error', ['mailbox:read'], ['Lead intake'], 'Parser rejected 3 emails: unexpected template change'),
+    integ('Zillow', 'lead_source', 'Premier Agent leads via partner API.', 'connected', ['leads:read'], ['Lead intake']),
+    integ('Realtor.com', 'lead_source', 'Lead notification emails via email parsing.', 'error', ['mailbox:read'], ['Lead intake'], 'Parser rejected 3 emails: unexpected template change'),
     integ('Meta Lead Ads', 'lead_source', 'Instant-form leads from Facebook and Instagram.', 'connected', ['leads_retrieval', 'pages_show_list'], ['Lead intake', 'Campaign attribution']),
-    integ('Exotel Voice', 'voice', 'Outbound and inbound AI calling with recording.', 'connected', ['calls:write', 'recordings:read'], ['Outbound calls', 'Inbound calls', 'Recording', 'Status webhooks']),
-    integ('WhatsApp Business', 'messaging', 'Official Cloud API with approved templates.', 'connected', ['whatsapp_business_messaging'], ['Send', 'Receive', 'Templates', 'Delivery receipts']),
+    integ('Retell AI Voice', 'voice', 'Outbound and inbound AI calling with recording.', 'connected', ['calls:write', 'recordings:read'], ['Outbound calls', 'Inbound calls', 'Recording', 'Status webhooks']),
+    integ('Twilio SMS', 'messaging', 'Two-way texting from a registered 10DLC number.', 'connected', ['messages:write', 'messages:read'], ['Send', 'Receive', 'Opt-out handling', 'Delivery receipts']),
     integ('Google Calendar', 'calendar', 'Two-way sync of staff calendars.', 'needs_reauth', ['calendar.events'], ['Availability', 'Event sync'], 'Refresh token revoked for meera@'),
     integ('Postmark', 'email', 'Transactional email and inbound parsing.', 'connected', ['send', 'inbound'], ['Send', 'Receive']),
     integ('Anthropic', 'ai', 'Model provider for agents (no training on customer data).', 'connected', ['messages'], ['Extraction', 'Drafting', 'Summaries']),
     integ('n8n', 'automation', 'Connector-heavy workflows with run tracking.', 'connected', ['workflows:execute'], ['Integration alerts']),
-    integ('Housing.com', 'lead_source', 'Portal enquiries.', 'disconnected', [], ['Lead intake']),
+    integ('Redfin', 'lead_source', 'Partner agent referrals.', 'disconnected', [], ['Lead intake']),
   ];
 
   /* Webhook events */
   const webhookEvents: WebhookEvent[] = [];
   for (let i = 0; i < Math.round(70 * cfg.scale) + 6; i++) {
-    const provider = pick(rand, ['Meta Lead Ads', '99acres', 'Website form', 'Exotel Voice', 'WhatsApp Business', 'MagicBricks', 'Generic webhook']);
-    const status: WebhookEvent['status'] = provider === 'MagicBricks' && rand() < 0.5 ? 'failed' : pickWeighted(rand, [['processed', 88], ['duplicate', 6], ['retrying', 2], ['dead_letter', 1], ['rejected', 2]]);
+    const provider = pick(rand, ['Meta Lead Ads', 'Zillow', 'Website form', 'Retell AI Voice', 'Twilio SMS', 'Realtor.com', 'Generic webhook']);
+    const status: WebhookEvent['status'] = provider === 'Realtor.com' && rand() < 0.5 ? 'failed' : pickWeighted(rand, [['processed', 88], ['duplicate', 6], ['retrying', 2], ['dead_letter', 1], ['rejected', 2]]);
     webhookEvents.push({
       id: id('evt'), orgId, provider,
-      type: provider.includes('Voice') ? pick(rand, ['call.status', 'call.completed']) : provider.includes('WhatsApp') ? pick(rand, ['message.received', 'message.status']) : 'lead.created',
+      type: provider.includes('Voice') ? pick(rand, ['call.status', 'call.completed']) : provider.includes('SMS') ? pick(rand, ['message.received', 'message.status']) : 'lead.created',
       status, receivedAt: now - Math.pow(rand(), 1.3) * 3 * DAY, attempts: status === 'dead_letter' ? 5 : status === 'retrying' ? 2 : 1,
       error: status === 'failed' ? 'Payload validation: phone missing' : status === 'dead_letter' ? 'Exhausted retries: downstream timeout' : status === 'rejected' ? 'Invalid signature' : null,
       idempotencyKey: `${provider.slice(0, 3).toLowerCase()}_${Math.floor(rand() * 1e10).toString(36)}`, signature: status === 'rejected' ? 'invalid' : 'valid',
@@ -783,12 +792,14 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const growth = 0.55 + (1 - d / 90) * 0.6;
     const weekend = [0].includes(new Date(day).getDay()) ? 0.5 : 1;
     const f = growth * weekend * cfg.scale * between(rand, 0.85, 1.15);
-    usage.push({ orgId, day, category: 'voice', provider: 'Exotel Voice', agentId: agentOf('voice_calling').id, units: Math.round(95 * f), cost: Math.round(95 * f * 7.6) });
-    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('qualification').id, units: Math.round(310 * f), cost: Math.round(310 * f * 0.55) });
-    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('follow_up').id, units: Math.round(180 * f), cost: Math.round(180 * f * 0.48) });
-    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('property_matching').id, units: Math.round(90 * f), cost: Math.round(90 * f * 0.12) });
-    usage.push({ orgId, day, category: 'messaging', provider: 'WhatsApp Business', agentId: agentOf('follow_up').id, units: Math.round(260 * f), cost: Math.round(260 * f * 0.78) });
-    usage.push({ orgId, day, category: 'messaging', provider: 'WhatsApp Business', agentId: agentOf('appointment').id, units: Math.round(120 * f), cost: Math.round(120 * f * 0.78) });
+    // Costs in USD, rounded to cents.
+    const usd = (units: number, rate: number) => Math.round(units * rate * 100) / 100;
+    usage.push({ orgId, day, category: 'voice', provider: 'Retell AI Voice', agentId: agentOf('voice_calling').id, units: Math.round(95 * f), cost: usd(95 * f, 0.12) });
+    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('qualification').id, units: Math.round(310 * f), cost: usd(310 * f, 0.01) });
+    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('follow_up').id, units: Math.round(180 * f), cost: usd(180 * f, 0.008) });
+    usage.push({ orgId, day, category: 'llm', provider: 'Anthropic', agentId: agentOf('property_matching').id, units: Math.round(90 * f), cost: usd(90 * f, 0.002) });
+    usage.push({ orgId, day, category: 'messaging', provider: 'Twilio SMS', agentId: agentOf('follow_up').id, units: Math.round(260 * f), cost: usd(260 * f, 0.0083) });
+    usage.push({ orgId, day, category: 'messaging', provider: 'Twilio SMS', agentId: agentOf('appointment').id, units: Math.round(120 * f), cost: usd(120 * f, 0.0083) });
   }
 
   /* Finance */
@@ -804,13 +815,13 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     const date = new Date(today);
     date.setMonth(date.getMonth() - m, 3);
     for (const [cat, vendor, amt] of [
-      ['marketing', 'Meta Platforms', 120000],
-      ['marketing', 'Google Ads', 90000],
-      ['marketing', '99acres', 85000],
-      ['telephony', 'Exotel', 22000],
-      ['ai_usage', 'Anthropic', 14000],
-      ['software', 'Supabase · Vercel', 6500],
-      ['operations', 'Office & travel', 48000],
+      ['marketing', 'Meta Platforms', 3500],
+      ['marketing', 'Google Ads', 2800],
+      ['marketing', 'Zillow Premier Agent', 4500],
+      ['telephony', 'Retell AI', 450],
+      ['ai_usage', 'Anthropic', 180],
+      ['software', 'Supabase · Vercel', 85],
+      ['operations', 'Office & travel', 2200],
     ] as const) {
       expenses.push({ id: id('exp'), orgId, category: cat, vendor, amount: Math.round(amt * cfg.scale * between(rand, 0.85, 1.15)), date: date.getTime(), status: m === 0 && rand() < 0.5 ? 'pending' : 'paid' });
     }
@@ -819,12 +830,12 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   /* Documents */
   const documents: DocumentRec[] = [];
   const docKinds: [DocumentRec['kind'], string, DocumentRec['classification']][] = [
-    ['agreement', 'Sale agreement draft', 'confidential'],
-    ['id_proof', 'PAN card', 'restricted'],
+    ['agreement', 'Purchase agreement draft', 'confidential'],
+    ['id_proof', 'Driver’s license', 'restricted'],
     ['title_deed', 'Title deed', 'confidential'],
     ['floor_plan', 'Floor plan', 'general'],
     ['brochure', 'Project brochure', 'general'],
-    ['invoice', 'Brokerage invoice', 'confidential'],
+    ['invoice', 'Commission invoice', 'confidential'],
   ];
   for (let i = 0; i < Math.round(26 * cfg.scale) + 3; i++) {
     const [kind, label, classification] = pick(rand, docKinds);
@@ -844,21 +855,21 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
   ];
   for (let i = 0; i < Math.round(160 * cfg.scale) + 10; i++) {
     const [action, entity, at] = pick(rand, auditActions);
-    audit.push({ id: id('aud'), orgId, actor: at === 'user' ? { type: 'user', name: pick(rand, members).name } : at === 'ai_agent' ? { type: 'ai_agent', name: pick(rand, agents).name } : at === 'integration' ? { type: 'integration', name: pick(rand, ['Meta Lead Ads', 'Exotel Voice', 'Generic webhook']) } : sys, action, entity, entityId: null, at: now - Math.pow(rand(), 1.2) * 30 * DAY, meta: action === 'member.role_changed' ? 'agent → manager' : action === 'webhook.signature_failed' ? 'ip_hash 9f1c…' : action === 'lead.fields_updated' ? 'budget_max, locations' : null });
+    audit.push({ id: id('aud'), orgId, actor: at === 'user' ? { type: 'user', name: pick(rand, members).name } : at === 'ai_agent' ? { type: 'ai_agent', name: pick(rand, agents).name } : at === 'integration' ? { type: 'integration', name: pick(rand, ['Meta Lead Ads', 'Retell AI Voice', 'Generic webhook']) } : sys, action, entity, entityId: null, at: now - Math.pow(rand(), 1.2) * 30 * DAY, meta: action === 'member.role_changed' ? 'agent → manager' : action === 'webhook.signature_failed' ? 'ip_hash 9f1c…' : action === 'lead.fields_updated' ? 'budget_max, locations' : null });
   }
   audit.sort((a, b) => b.at - a.at);
 
   /* Notifications */
   const notifications: Notification[] = [
     { id: id('ntf'), orgId, kind: 'approval', title: `${approvals.filter((a) => a.status === 'pending').length} approvals waiting`, body: 'AI agents are waiting on your decision.', at: now - 15 * MIN, read: false, link: 'approvals' },
-    { id: id('ntf'), orgId, kind: 'failure', title: 'MagicBricks parser failing', body: '3 enquiries could not be parsed. Review in Integrations.', at: now - 50 * MIN, read: false, link: 'integrations' },
+    { id: id('ntf'), orgId, kind: 'failure', title: 'Realtor.com parser failing', body: '3 enquiries could not be parsed. Review in Integrations.', at: now - 50 * MIN, read: false, link: 'integrations' },
     { id: id('ntf'), orgId, kind: 'lead', title: `New hot lead: ${leads.filter((l) => l.status === 'new').sort((a, b) => b.createdAt - a.createdAt)[0]?.name ?? 'New lead'}`, body: 'Scored 84 — budget and timeline confirmed.', at: now - 75 * MIN, read: false, link: 'leads' },
     { id: id('ntf'), orgId, kind: 'appointment', title: 'Visit rescheduled', body: 'Saturday 4:00 pm moved to Sunday 11:30 am.', at: now - 3 * HOUR, read: true, link: 'appointments' },
     { id: id('ntf'), orgId, kind: 'system', title: 'Google Calendar needs re-authorization', body: 'Sync paused for one user until access is restored.', at: now - 5 * HOUR, read: true, link: 'integrations' },
     { id: id('ntf'), orgId, kind: 'task', title: '4 tasks overdue', body: 'Callbacks and document collection are past due.', at: now - 8 * HOUR, read: true, link: 'tasks' },
   ];
 
-  const sources: MarketingSource[] = SOURCES.map(([name]) => ({ id: id('src'), orgId, key: name.toLowerCase().replace(/\W+/g, '_'), name, kind: SOURCE_META[name].kind, monthlySpend: Math.round(SOURCE_META[name].spend * cfg.scale), active: name !== 'Walk-in' }));
+  const sources: MarketingSource[] = SOURCES.map(([name]) => ({ id: id('src'), orgId, key: name.toLowerCase().replace(/\W+/g, '_'), name, kind: SOURCE_META[name].kind, monthlySpend: Math.round(SOURCE_META[name].spend * cfg.scale), active: name !== 'Open house' }));
 
   activities.sort((a, b) => b.at - a.at);
 

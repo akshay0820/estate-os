@@ -287,7 +287,7 @@ function VoiceSettingsModal({ initial, onClose }: { initial: live.VoiceSettings 
       <div className="form-grid">
         <Field label="AI calling" className="full"><Switch on={f.enabled} label="Enable AI calling" onChange={(v) => set('enabled', v)} /></Field>
         <Field label="Spoken agency name" hint="Used in the greeting"><Input value={f.agency_spoken_name ?? ''} onChange={(e) => set('agency_spoken_name', e.target.value)} /></Field>
-        <Field label="Calling number (E.164)" hint="Owned or imported in Retell"><Input value={f.from_number ?? ''} placeholder="+9180…" onChange={(e) => set('from_number', e.target.value.trim())} /></Field>
+        <Field label="Calling number (E.164)" hint="Owned or imported in Retell"><Input value={f.from_number ?? ''} placeholder="+1512…" onChange={(e) => set('from_number', e.target.value.trim())} /></Field>
         <Field label="Outbound Retell agent id"><Input value={f.outbound_agent_id ?? ''} onChange={(e) => set('outbound_agent_id', e.target.value.trim())} /></Field>
         <Field label="Inbound Retell agent id" hint="Optional"><Input value={f.inbound_agent_id ?? ''} onChange={(e) => set('inbound_agent_id', e.target.value.trim())} /></Field>
         <Field label="Consent required"><Select value={f.consent_basis} onChange={(e) => set('consent_basis', e.target.value as 'ai_call' | 'phone')}>

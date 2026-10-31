@@ -121,7 +121,7 @@ function RunDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           ['Correlation', <span key="c" className="row mono" style={{ fontSize: 12 }}>{r.correlationId}<button className="text-btn" onClick={() => { void navigator.clipboard?.writeText(r.correlationId); toast({ kind: 'success', title: 'Copied' }); }} aria-label="Copy correlation id"><Copy size={12} /></button></span>],
           ['Trigger', <span key="t" className="mono" style={{ fontSize: 12 }}>{r.trigger}</span>],
           ['Duration', r.status === 'running' ? 'Running…' : ms(r.durationMs)],
-          ['Tokens', r.tokens ? r.tokens.toLocaleString('en-IN') : '—'],
+          ['Tokens', r.tokens ? r.tokens.toLocaleString('en-US') : '—'],
           ['Cost', r.cost ? `${moneyPrecise(r.cost)} (estimate)` : '—'],
           ['Lead', lead?.name ?? '—'],
         ]} />

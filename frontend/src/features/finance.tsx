@@ -33,7 +33,7 @@ export function FinancePage() {
     for (let i = 5; i >= 0; i--) {
       const s = new Date(d.getFullYear(), d.getMonth() - i, 1).getTime();
       const e = new Date(d.getFullYear(), d.getMonth() - i + 1, 1).getTime();
-      out.push({ label: new Date(s).toLocaleDateString('en-IN', { month: 'short' }), start: s, end: e });
+      out.push({ label: new Date(s).toLocaleDateString('en-US', { month: 'short' }), start: s, end: e });
     }
     return out;
   }, []);

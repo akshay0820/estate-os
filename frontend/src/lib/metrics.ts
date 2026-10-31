@@ -10,9 +10,9 @@ export interface Bucket {
 
 export const RANGE_DAYS: Record<RangeKey, number> = { '7d': 7, '30d': 30, '90d': 90, '12m': 365 };
 
-const dayLabel = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' });
-const monLabel = new Intl.DateTimeFormat('en-IN', { month: 'short' });
-const wdLabel = new Intl.DateTimeFormat('en-IN', { weekday: 'short' });
+const dayLabel = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' });
+const monLabel = new Intl.DateTimeFormat('en-US', { month: 'short' });
+const wdLabel = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
 
 /** Buckets for a range ending today (inclusive). Daily up to 30d, weekly for 90d, monthly for 12m. */
 export function buckets(range: RangeKey, now = Date.now(), offsetPeriods = 0): Bucket[] {
