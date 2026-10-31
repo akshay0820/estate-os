@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { NAV, NAV_FLAT, PAGE_TITLE } from './nav';
+import { Brand } from './Brand';
 import { Avatar, Button, Menu, Switch } from '@/components/ui';
 import { confirm } from '@/components/dialogs';
 import { LIVE, useStore } from '@/store/store';
@@ -103,15 +104,7 @@ function Sidebar({ page }: { page: string }) {
   return (
     <nav className="sidebar" aria-label="Primary">
       <div className="sb-brand">
-        <span className="sb-logo" aria-hidden>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 21V10.5L12 3l9 7.5V21h-6.5v-6h-5v6z" />
-          </svg>
-        </span>
-        <div className="sb-name">
-          Estate OS
-          <small>by BlazeReach</small>
-        </div>
+        <Brand />
         <Button
           variant="ghost"
           size="sm"

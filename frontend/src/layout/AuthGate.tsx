@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { COUNTRIES, TIME_ZONES, browserTimeZone, countryForTimeZone } from '@/lib/region';
 import { ArrowRight, Building, Database, Loader2, LogOut, Mail, MailCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button, Field, Input, Select } from '@/components/ui';
+import { Brand } from './Brand';
 import { backendConfigured } from '@/backend/client';
 import { toApiError } from '@/backend/errors';
 import {
@@ -73,10 +74,7 @@ function Frame({ children, wide, foot = true }: { children: ReactNode; wide?: bo
   return (
     <div className="auth-wrap">
       <div className="auth-brand">
-        <span className="sb-logo" aria-hidden>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21V10.5L12 3l9 7.5V21h-6.5v-6h-5v6z" /></svg>
-        </span>
-        <div className="sb-name">Estate OS<small>by BlazeReach</small></div>
+        <Brand />
       </div>
       <main className="card auth-card" style={wide ? { width: 'min(560px, 100%)' } : undefined}>{children}</main>
       {foot && <p className="faint auth-foot"><ShieldCheck size={12} /> Each agency's data is isolated. Access is checked by the server on every request.</p>}

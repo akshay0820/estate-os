@@ -32,32 +32,61 @@
   flex-shrink: 0;
 }
 
+/* Brand lockup (layout/Brand.tsx): glossy ember tile, wordmark with an "OS" tag, spaced "by BlazeReach" line. */
 .sb-logo {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: var(--ember);
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--amber) 0%, var(--ember) 48%, var(--blaze) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 6px 18px -6px rgba(255, 91, 31, 0.6);
   display: grid;
   place-items: center;
-  color: #0a0908;
   flex-shrink: 0;
 }
 
+.sb-logo svg {
+  width: 21px;
+  height: 21px;
+}
+
 .sb-name {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1;
+  min-width: 0;
+}
+
+.brand-word {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 3px;
   font-weight: 600;
-  font-size: 14.5px;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-size: 16px;
+  letter-spacing: -0.035em;
+  color: var(--text);
+}
+
+.brand-os {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  margin-top: 1px;
 }
 
 .sb-name small {
   display: block;
   font-family: var(--font-mono);
   font-weight: 400;
-  font-size: 10.5px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
   color: var(--text-3);
-  letter-spacing: 0;
-  margin-top: 2px;
 }
 
 .sb-collapse {
@@ -2806,9 +2835,11 @@ button.list-row:hover {
   }
   .app[data-collapsed='true'] .sb-label,
   .app[data-collapsed='true'] .sb-item span,
-  .app[data-collapsed='true'] .sb-name,
   .app[data-collapsed='true'] .sb-org {
     display: revert;
+  }
+  .app[data-collapsed='true'] .sb-name {
+    display: flex;
   }
   .mobile-only {
     display: inline-flex;
@@ -2897,7 +2928,35 @@ button.list-row:hover {
 .auth-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.auth-brand .sb-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
+.auth-brand .sb-logo svg {
+  width: 28px;
+  height: 28px;
+}
+
+.auth-brand .brand-word {
+  font-size: 22px;
+}
+
+.auth-brand .brand-os {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.auth-brand .sb-name {
+  gap: 5px;
+}
+
+.auth-brand .sb-name small {
+  font-size: 10px;
 }
 
 .auth-card {
