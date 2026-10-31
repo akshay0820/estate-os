@@ -62,8 +62,8 @@
 
 .brand-word {
   display: inline-flex;
-  align-items: flex-start;
-  gap: 3px;
+  align-items: baseline;
+  gap: 0.3em;
   font-weight: 600;
   font-size: 16px;
   letter-spacing: -0.035em;
@@ -73,10 +73,9 @@
 .brand-os {
   font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 9.5px;
-  letter-spacing: 0.06em;
+  font-size: 1em;
+  letter-spacing: 0;
   color: var(--accent-text);
-  margin-top: 1px;
 }
 
 .sb-name small {
@@ -2944,11 +2943,6 @@ button.list-row:hover {
 
 .auth-brand .brand-word {
   font-size: 22px;
-}
-
-.auth-brand .brand-os {
-  font-size: 11px;
-  margin-top: 2px;
 }
 
 .auth-brand .sb-name {
