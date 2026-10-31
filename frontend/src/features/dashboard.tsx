@@ -329,6 +329,7 @@ export function Dashboard() {
 
       <div className="grid g-main-side mt-16">
         <Card
+          className="card-fill"
           title="Lead flow"
           sub={`New vs qualified leads${compare ? ' · dashed is the previous period' : ''}`}
           actions={
@@ -340,7 +341,7 @@ export function Dashboard() {
           }
         >
           <AreaChart
-            height={262}
+            height="fill"
             labels={v.labels}
             series={[
               ...(compare ? [{ name: 'Previous', values: v.prevSeries, color: 'var(--text-3)', dashed: true }] : []),
@@ -376,7 +377,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid g-3 mt-16">
-        <Card title="Conversion funnel" sub="Cohort: leads created in the period">
+        <Card className="card-fill" title="Conversion funnel" sub="Cohort: leads created in the period">
           {v.funnel.map((f, i) => (
             <div key={f.label} className="funnel-row">
               <span className="faint" style={{ fontSize: 12.5 }}>{f.label}</span>
@@ -385,13 +386,13 @@ export function Dashboard() {
             </div>
           ))}
         </Card>
-        <Card title="When leads arrive" sub="Day × time — staff accordingly">
+        <Card className="card-fill" title="When leads arrive" sub="Day × time — staff accordingly">
           <Heatmap rows={['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']} cols={v.blocks.map((h) => (h > 12 ? `${h - 12}p` : h === 12 ? '12p' : `${h}a`))} values={v.heat} format={(v, r, c) => `${r} ${c}: ${v} lead${v === 1 ? '' : 's'}`} />
-          <div className="row mt-12 faint" style={{ fontSize: 11.5, justifyContent: 'flex-end', gap: 4 }}>
+          <div className="row push-end faint" style={{ fontSize: 11.5, justifyContent: 'flex-end', gap: 4, paddingTop: 12 }}>
             Less {[15, 35, 60, 85, 100].map((p) => <i key={p} style={{ width: 10, height: 10, borderRadius: 3, background: `color-mix(in srgb, var(--ember) ${p}%, var(--fill))` }} />)} More
           </div>
         </Card>
-        <Card title="Speed to lead" sub={`SLA: first contact within ${org.slaMinutes} min`}>
+        <Card className="card-fill" title="Speed to lead" sub={`SLA: first contact within ${org.slaMinutes} min`}>
           <div className="row" style={{ alignItems: 'flex-end', gap: 10 }}>
             <div className="kpi-value" style={{ marginTop: 0, fontSize: 36 }}>{Number.isFinite(v.respMedian) ? v.respMedian.toFixed(1) : '—'}<span className="faint" style={{ fontSize: 15, fontWeight: 500 }}> min</span></div>
             {compare && <Delta value={change(v.respMedian, v.prevRespMedian)} invert />}
@@ -402,7 +403,9 @@ export function Dashboard() {
             <div className="progress accent"><i style={{ width: `${v.withinSla * 100}%` }} /></div>
             <div className="row row-between mt-8" style={{ fontSize: 13 }}><span>Still waiting for first contact</span><b className="num">{v.awaiting}</b></div>
           </div>
-          <Button size="sm" className="mt-16" onClick={() => navigate('leads')} icon={<Timer size={14} />}>Open uncontacted leads</Button>
+          <div className="push-end" style={{ paddingTop: 16 }}>
+            <Button size="sm" onClick={() => navigate('leads')} icon={<Timer size={14} />}>Open uncontacted leads</Button>
+          </div>
         </Card>
       </div>
 

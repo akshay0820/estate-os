@@ -1,17 +1,23 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 export function useWidth<T extends HTMLElement>() {
+  const [ref, width] = useSize<T>();
+  return [ref, width] as const;
+}
+
+/** Content-box width and height of an element, kept current with a ResizeObserver. */
+export function useSize<T extends HTMLElement>() {
   const ref = useRef<T>(null);
-  const [width, setWidth] = useState(0);
+  const [size, setSize] = useState({ w: 0, h: 0 });
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    setWidth(el.clientWidth);
-    const ro = new ResizeObserver(([e]) => setWidth(Math.round(e.contentRect.width)));
+    setSize({ w: el.clientWidth, h: el.clientHeight });
+    const ro = new ResizeObserver(([e]) => setSize({ w: Math.round(e.contentRect.width), h: Math.round(e.contentRect.height) }));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  return [ref, width] as const;
+  return [ref, size.w, size.h] as const;
 }
 
 /** Monotone cubic interpolation (Fritsch–Carlson) — smooth without overshooting the data. */
@@ -109,8 +115,13 @@ export interface Series {
   fill?: boolean;
 }
 
-export function AreaChart({ labels, series, height = 240, format = (v) => String(Math.round(v)), tickEvery }: { labels: string[]; series: Series[]; height?: number; format?: (v: number) => string; tickEvery?: number }) {
-  const [ref, width] = useWidth<HTMLDivElement>();
+const FILL_MIN_HEIGHT = 220;
+
+/** `height="fill"` makes the chart take the height of its container (a `.card-fill` body), so it lines up with its row. */
+export function AreaChart({ labels, series, height: heightProp = 240, format = (v) => String(Math.round(v)), tickEvery }: { labels: string[]; series: Series[]; height?: number | 'fill'; format?: (v: number) => string; tickEvery?: number }) {
+  const [ref, width, boxHeight] = useSize<HTMLDivElement>();
+  const fill = heightProp === 'fill';
+  const height = fill ? Math.max(FILL_MIN_HEIGHT, boxHeight) : heightProp;
   const [hover, setHover] = useState<number | null>(null);
   const gid = useId().replace(/:/g, '');
   const pad = { l: 44, r: 8, t: 12, b: 26 };
@@ -133,7 +144,7 @@ export function AreaChart({ labels, series, height = 240, format = (v) => String
   };
 
   return (
-    <div className="chart" ref={ref} style={{ height }} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+    <div className="chart" ref={ref} style={fill ? { height: '100%', minHeight: FILL_MIN_HEIGHT } : { height }} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
       {width > 0 && (
         <svg width={width} height={height} role="img" aria-label={`Chart of ${series.map((s) => s.name).join(', ')}`}>
           <defs>

@@ -481,6 +481,24 @@
   padding: 14px 18px 18px;
 }
 
+/* A card that fills its grid cell: the body takes the remaining height, so a chart can grow into it and a
+   .push-end element sits on the card's bottom edge, level with its neighbours in the row. */
+.card-fill {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-fill > .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.card-fill > .card-body > .push-end {
+  margin-top: auto;
+}
+
 .card-flush {
   padding: 8px 0 4px;
 }
@@ -554,10 +572,18 @@ button.kpi:hover {
   font-variant-numeric: tabular-nums;
 }
 
+/* In a KPI card the number and footer sit on the card's bottom edge, so a label that wraps to two lines does not
+   push its number below the others in the row. */
+.kpi > .kpi-value {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
 .kpi-foot {
   white-space: nowrap;
   display: flex;
   align-items: flex-end;
+  min-height: 30px;
   justify-content: space-between;
   gap: 8px;
   margin-top: 4px;
