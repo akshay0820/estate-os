@@ -55,6 +55,10 @@ verify_jwt = true
 [functions.sales-analyst]
 verify_jwt = true
 
+# The in-app workspace assistant: signed-in users only; it queries as the caller (row-level security applies).
+[functions.assistant]
+verify_jwt = true
+
 # Uptime monitoring endpoint: public callers get { status } only; aggregate signals need the HEALTH_TOKEN secret header.
 [functions.health]
 verify_jwt = false

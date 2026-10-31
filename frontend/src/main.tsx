@@ -7,6 +7,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
 import './styles/motion.css';
+import './styles/assistant.css';
 import { installCardSpotlight } from './lib/motion';
 
 // Handy for inspecting state from the console during development.

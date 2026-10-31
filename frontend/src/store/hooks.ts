@@ -4,7 +4,7 @@ import { LIVE, useStore } from './store';
 import type { OrgData } from './seed';
 import type { Member } from './types';
 
-const ME_EMAIL = 'aanya@skylinerealty.in';
+const ME_EMAIL = 'jordan@skylinerealty.com';
 
 // Least-privileged placeholder while a workspace is loading.
 const GUEST: Member = { id: '', orgId: '', name: '', email: '', phone: '', role: 'viewer', title: '', status: 'active', hue: 0, localities: [], joinedAt: 0 };

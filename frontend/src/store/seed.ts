@@ -414,7 +414,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
       updatedAt: createdAt + between(rand, 0, Math.max(0.1, ageDays)) * DAY,
     };
     const s = scoreLead(lead);
-    lead.score = Math.round(s.score + between(rand, -4, 4));
+    lead.score = Math.min(100, Math.max(0, Math.round(s.score + between(rand, -4, 4))));
     lead.scoreReasons = s.reasons;
     lead.missing = missingFields(lead);
     lead.lastContactAt = contacts[contacts.length - 1].lastContactedAt;

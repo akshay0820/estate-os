@@ -32,7 +32,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, check:functions, test, bui
 **Three parts:**
 - `frontend/`: Vite + React 18 + TypeScript, with a zustand store.
 - `supabase/migrations/`: Postgres. Nearly all business logic lives here.
-- `supabase/functions/`: 13 Deno Edge Functions, with shared code in `_shared/`.
+- `supabase/functions/`: 14 Deno Edge Functions, with shared code in `_shared/`.
 
 **The database is the backend.**
 - Every table is protected by row-level security on organization membership. The browser calls PostgREST with the
@@ -61,6 +61,12 @@ and nothing blocks waiting for it. User-triggered AI functions go through `_shar
 permissions, applies rate limits and records the request before the model is called.
 
 Outbound messages and calls always need human approval.
+
+**Workspace assistant (Estate AI).** `layout/Assistant.tsx` is the chat panel (Ctrl/⌘ J). Live mode calls the
+`assistant` Edge Function: Claude answers with read tools that call the `assistant_*` SECURITY INVOKER RPCs as the user,
+and write tools only *propose* changes (`_shared/assistant.ts` validates them). The app shows each proposal as a card
+and runs it through `data/actions.ts` when the user confirms (`lib/assistant.ts`). Demo mode answers from sample data
+with rules in `lib/assistantDemo.ts`. Keep the tool list, the proposal kinds and both clients in step.
 
 Edge Functions:
 - Import `jsr:@supabase/supabase-js@2.118.0` exactly; predeploy enforces the pin.

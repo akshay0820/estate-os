@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { NAV, NAV_FLAT, PAGE_TITLE } from './nav';
 import { Brand } from './Brand';
+import { Assistant } from './Assistant';
 import { useGlide } from '@/lib/motion';
 import { Avatar, Button, Menu, Switch } from '@/components/ui';
 import { confirm } from '@/components/dialogs';
@@ -59,6 +60,7 @@ export function Shell({ page, children }: { page: string; children: ReactNode })
     <div className="app" data-collapsed={collapsed} data-mobile-open={mobileOpen}>
       <div className="sb-scrim" onClick={() => setMobileOpen(false)} />
       <Sidebar page={page} />
+      <Assistant />
       <div className="main">
         <Topbar page={page} />
         <main className="content" id="main">
@@ -426,6 +428,7 @@ function PaletteInner({ close }: { close: () => void }) {
       { id: 'a-appt', label: 'Book appointment', hint: 'Action', group: 'Actions', run: () => navigate('appointments', { new: '1' }) },
       { id: 'a-task', label: 'New task', hint: 'Action', group: 'Actions', run: () => navigate('tasks', { new: '1' }) },
       ...(LIVE ? [] : [{ id: 'a-sim', label: 'Simulate inbound lead (demo)', hint: 'Action', group: 'Actions', run: () => void useStore.getState().simulateInboundLead() }]),
+      { id: 'a-ai', label: 'Ask the AI assistant', hint: 'Ctrl J', group: 'Actions', run: () => useUi.getState().setAssistant(true) },
       { id: 'a-theme', label: 'Toggle light / dark mode', hint: 'Action', group: 'Actions', run: toggleTheme },
     ];
     if (!term) return [...actions, ...pages];

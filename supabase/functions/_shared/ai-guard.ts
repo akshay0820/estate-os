@@ -4,7 +4,7 @@
 // the migration is not applied) the request is refused: the model is never called without a recorded, authorized request.
 import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
-export type AiFeature = 'appointment_assistant' | 'crm_enrichment' | 'sales_recommendations' | 'sales_analyst';
+export type AiFeature = 'appointment_assistant' | 'crm_enrichment' | 'sales_recommendations' | 'sales_analyst' | 'workspace_assistant';
 export type AiOutcome = 'ok' | 'no_result' | 'invalid_output' | 'model_error' | 'timeout' | 'refused' | 'error';
 
 type RpcClient = Pick<SupabaseClient, 'rpc'>;

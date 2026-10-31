@@ -1278,6 +1278,16 @@ export async function siAsk(question: string, previousSpec: unknown): Promise<{ 
   return data;
 }
 
+/** The workspace assistant: plain text turns in, a reply plus any proposed actions out (nothing is changed server-side). */
+export async function assistantAsk(turns: { role: 'user' | 'assistant'; text: string }[]): Promise<{ status: string; reply?: string; actions?: unknown[]; message?: string }> {
+  const { data, error } = await sb().functions.invoke('assistant', { body: { org_id: ctx().orgId, messages: turns } });
+  if (error) {
+    const body = (await (error as { context?: Response }).context?.json().catch(() => null)) as { status?: string; message?: string; error?: string } | null;
+    return { status: body?.status ?? 'error', message: body?.message ?? body?.error };
+  }
+  return data;
+}
+
 export async function siForecastRequest(start: string, end: string) {
   const r = check(await sb().rpc('si_forecast_request', { p_org: ctx().orgId, p_horizon_start: start, p_horizon_end: end, p_idempotency_key: `ui:fc:${Date.now()}` })) as { forecast_id: string; status: string };
   useLiveRev.getState().bump();

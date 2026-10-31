@@ -86,10 +86,10 @@ export function pct(value: number, digits = 1): string {
   return `${(value * 100).toFixed(digits).replace(/\.0$/, '')}%`;
 }
 
-const dateFmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' });
-const dateYearFmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-const timeFmt = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
-const weekdayFmt = new Intl.DateTimeFormat('en-IN', { weekday: 'short' });
+const dateFmt = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' });
+const dateYearFmt = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+const weekdayFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
 
 export function fmtDate(ts: number | null | undefined, withYear = false): string {
   if (!ts) return '—';

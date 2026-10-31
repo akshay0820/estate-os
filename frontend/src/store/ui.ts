@@ -14,12 +14,14 @@ export interface Toast {
 interface UiState {
   toasts: Toast[];
   cmdOpen: boolean;
+  assistantOpen: boolean;
   collapsed: boolean;
   mobileOpen: boolean;
   theme: 'light' | 'dark';
   toast: (t: Omit<Toast, 'id'>) => void;
   dismiss: (id: string) => void;
   setCmd: (open: boolean) => void;
+  setAssistant: (open: boolean) => void;
   setCollapsed: (v: boolean) => void;
   setMobileOpen: (v: boolean) => void;
   toggleTheme: () => void;
@@ -39,6 +41,7 @@ const readCollapsed = () => {
 export const useUi = create<UiState>((set, get) => ({
   toasts: [],
   cmdOpen: false,
+  assistantOpen: false,
   collapsed: readCollapsed(),
   mobileOpen: false,
   theme: readTheme(),
@@ -49,6 +52,7 @@ export const useUi = create<UiState>((set, get) => ({
   },
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
   setCmd: (cmdOpen) => set({ cmdOpen }),
+  setAssistant: (assistantOpen) => set({ assistantOpen }),
   setCollapsed: (collapsed) => {
     try {
       localStorage.setItem('estate-os:collapsed', collapsed ? '1' : '0');

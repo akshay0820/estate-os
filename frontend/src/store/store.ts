@@ -172,7 +172,7 @@ interface Actions {
 
 export type Store = State & Actions;
 
-const ME_EMAIL = 'aanya@skylinerealty.in';
+const ME_EMAIL = 'jordan@skylinerealty.com';
 
 function empty(): State {
   const keys: (keyof OrgData)[] = ['members', 'contacts', 'leads', 'properties', 'deals', 'appointments', 'tasks', 'conversations', 'calls', 'agents', 'workflows', 'runs', 'approvals', 'followUps', 'integrations', 'webhookEvents', 'usage', 'commissions', 'expenses', 'documents', 'audit', 'activities', 'notifications', 'sources'];
@@ -1048,7 +1048,7 @@ export const useStore = create<Store>()(
       };
     },
     {
-      name: 'estate-os:data:v4', // v4: US demo agencies (USD, Austin and San Diego)
+      name: 'estate-os:data:v5', // v5: US demo agencies, scores capped at 100
       // Live mode keeps business data in memory only; nothing tenant-owned is written to the browser.
       storage: createJSONStorage(() => (LIVE ? { getItem: () => null, setItem: () => undefined, removeItem: () => undefined } : localStorage)),
       partialize: (s) => {
