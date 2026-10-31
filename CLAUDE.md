@@ -74,6 +74,15 @@ Agent drafts, `agent_call_queue` rows). A queued AI call is placed only when a p
 `voice-calls/call` (full call policy) and then records it with `call_queue_decide`. Demo mode mirrors this in
 `lib/automationsDemo.ts`; schedule and settings rules shared with tests live in `lib/automationRules.ts`.
 
+**Integrations marketplace.** `lib/integrationCatalog.ts` is the static catalog of connectable third-party tools, each
+with an `authType`: `api_key` (a credential field, genuinely stored in Vault via `integration_connect_api_key` /
+`integration_disconnect` / `integration_check`, migration 0030 — no provider adapter exists, so nothing is ever sent
+or synced), `oauth` (live mode honestly states what a developer still needs to configure; only demo mode simulates a
+successful consent, for sales demos), or `env` (server-configured, informational only). `features/integrations.tsx`
+renders the catalog as a filterable marketplace (`Marketplace`/`ProviderTile`/`ConnectModal`) for both live
+(`backend/live.ts`) and demo (`store/store.ts`'s `connectIntegration`) modes. Keep the catalog, the `authType` rules
+and both clients in step.
+
 Edge Functions:
 - Import `jsr:@supabase/supabase-js@2.118.0` exactly; predeploy enforces the pin.
 - Take model names from `*_MODEL` env vars, defaulting to `claude-opus-5-5`.

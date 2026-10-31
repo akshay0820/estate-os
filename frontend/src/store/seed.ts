@@ -763,7 +763,9 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     integ('Meta Lead Ads', 'lead_source', 'Instant-form leads from Facebook and Instagram.', 'connected', ['leads_retrieval', 'pages_show_list'], ['Lead intake', 'Campaign attribution']),
     integ('Retell AI Voice', 'voice', 'Outbound and inbound AI calling with recording.', 'connected', ['calls:write', 'recordings:read'], ['Outbound calls', 'Inbound calls', 'Recording', 'Status webhooks']),
     integ('Twilio SMS', 'messaging', 'Two-way texting from a registered 10DLC number.', 'connected', ['messages:write', 'messages:read'], ['Send', 'Receive', 'Opt-out handling', 'Delivery receipts']),
-    integ('Google Calendar', 'calendar', 'Two-way sync of staff calendars.', 'needs_reauth', ['calendar.events'], ['Availability', 'Event sync'], 'Refresh token revoked for meera@'),
+    integ('Google Workspace', 'email', 'Gmail, Calendar, Drive, Sheets, Contacts and Meet in one sign-in.', 'needs_reauth',
+      ['gmail.send', 'gmail.readonly', 'calendar.events', 'drive.file', 'spreadsheets', 'contacts.readonly'],
+      ['Send', 'Receive', 'Calendar sync', 'Drive files', 'Sheets export', 'Contacts'], 'Refresh token revoked for meera@'),
     integ('Postmark', 'email', 'Transactional email and inbound parsing.', 'connected', ['send', 'inbound'], ['Send', 'Receive']),
     integ('Anthropic', 'ai', 'Model provider for agents (no training on customer data).', 'connected', ['messages'], ['Extraction', 'Drafting', 'Summaries']),
     integ('n8n', 'automation', 'Connector-heavy workflows with run tracking.', 'connected', ['workflows:execute'], ['Integration alerts']),
@@ -865,7 +867,7 @@ export function generateOrg(cfg: OrgConfig, now: number): OrgData {
     { id: id('ntf'), orgId, kind: 'failure', title: 'Realtor.com parser failing', body: '3 enquiries could not be parsed. Review in Integrations.', at: now - 50 * MIN, read: false, link: 'integrations' },
     { id: id('ntf'), orgId, kind: 'lead', title: `New hot lead: ${leads.filter((l) => l.status === 'new').sort((a, b) => b.createdAt - a.createdAt)[0]?.name ?? 'New lead'}`, body: 'Scored 84 — budget and timeline confirmed.', at: now - 75 * MIN, read: false, link: 'leads' },
     { id: id('ntf'), orgId, kind: 'appointment', title: 'Visit rescheduled', body: 'Saturday 4:00 pm moved to Sunday 11:30 am.', at: now - 3 * HOUR, read: true, link: 'appointments' },
-    { id: id('ntf'), orgId, kind: 'system', title: 'Google Calendar needs re-authorization', body: 'Sync paused for one user until access is restored.', at: now - 5 * HOUR, read: true, link: 'integrations' },
+    { id: id('ntf'), orgId, kind: 'system', title: 'Google Workspace needs re-authorization', body: 'Sync paused for one user until access is restored.', at: now - 5 * HOUR, read: true, link: 'integrations' },
     { id: id('ntf'), orgId, kind: 'task', title: '4 tasks overdue', body: 'Callbacks and document collection are past due.', at: now - 8 * HOUR, read: true, link: 'tasks' },
   ];
 

@@ -4,7 +4,7 @@
 import { create } from 'zustand';
 import { useStore } from '@/store/store';
 import type { OrgData } from '@/store/seed';
-import type { Channel, ConsentState, Deal, DealStage, Lead, LeadStatus, Organization, Property, Role, Task } from '@/store/types';
+import type { Channel, ConsentState, Deal, DealStage, Integration, Lead, LeadStatus, Organization, Property, Role, Task } from '@/store/types';
 import { can } from '@/lib/permissions';
 import { ImportStopped, runImport, type ImportOptions, type ImportResult, type ImportRowOutcome } from '@/lib/leadImport';
 import { supabase, functionsUrl } from './client';
@@ -1512,4 +1512,33 @@ export async function rotateWebhookSecret() {
 
 export function intakeEndpoint(slug: string) {
   return `${functionsUrl('lead-intake')}?org=${encodeURIComponent(slug)}`;
+}
+
+export interface IntegrationRow {
+  id: string; provider: string; integration_type: string; display_name: string; status: Integration['status'];
+  scopes: string[]; last_synced_at: string | null; last_error: string | null;
+}
+
+/** Every provider this workspace has ever connected (never includes a secret — the row has a Vault reference only). */
+export async function integrations() {
+  return check(await sb().from('integrations').select('id, provider, integration_type, display_name, status, scopes, last_synced_at, last_error').eq('organization_id', ctx().orgId)) as IntegrationRow[];
+}
+
+/** Stores an API key, token or webhook URL in the database Vault and marks the integration connected. */
+export async function connectIntegrationApiKey(provider: string, integrationType: string, displayName: string, credential: string, scopes: string[]) {
+  const r = check(await sb().rpc('integration_connect_api_key', { p_org: ctx().orgId, p_provider: provider, p_type: integrationType, p_display_name: displayName, p_credential: credential, p_scopes: scopes }));
+  useLiveRev.getState().bump();
+  return r;
+}
+
+export async function disconnectIntegration(id: string) {
+  checkMaybe(await sb().rpc('integration_disconnect', { p_id: id }));
+  useLiveRev.getState().bump();
+}
+
+/** Confirms the stored credential still decrypts. Never calls the provider — no adapter exists yet. */
+export async function checkIntegration(id: string) {
+  const r = check(await sb().rpc('integration_check', { p_id: id })) as { ok: boolean; status: string; last_synced_at?: string };
+  useLiveRev.getState().bump();
+  return r;
 }

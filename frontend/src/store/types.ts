@@ -395,7 +395,7 @@ export interface Integration {
   id: ID;
   orgId: ID;
   provider: string;
-  category: 'lead_source' | 'voice' | 'messaging' | 'email' | 'calendar' | 'ai' | 'automation';
+  category: 'lead_source' | 'voice' | 'messaging' | 'email' | 'calendar' | 'productivity' | 'marketing' | 'payments' | 'esignature' | 'ai' | 'automation';
   description: string;
   status: 'connected' | 'disconnected' | 'error' | 'needs_reauth' | 'paused';
   lastSync: number | null;

@@ -14,6 +14,7 @@ import {
 } from '@/lib/domain';
 import { IMPORT_MAX_ROWS, mapHeaders, mapLeadRow, type ImportResult } from '@/lib/leadImport';
 import { correlationId, downloadCsv, normalizeEmail, normalizePhone, sleep, uid } from '@/lib/util';
+import { catalogEntry } from '@/lib/integrationCatalog';
 import { generateAll, type OrgData } from './seed';
 import { toast } from './ui';
 import { backendConfigured } from '@/backend/client';
@@ -146,6 +147,7 @@ interface Actions {
   decideApproval: (id: ID, approve: boolean, note?: string) => void;
   // integrations
   setIntegrationStatus: (id: ID, status: Integration['status']) => void;
+  connectIntegration: (catalogId: string) => void;
   testIntegration: (id: ID) => Promise<boolean>;
   rotateWebhookSecret: () => string;
   simulateInboundLead: (opts?: { duplicate?: boolean; badSignature?: boolean; source?: string }) => Promise<void>;
@@ -902,6 +904,22 @@ export const useStore = create<Store>()(
           const i = get().integrations.find((x) => x.id === id)!;
           get().log(status === 'connected' ? 'integration.connected' : status === 'disconnected' ? 'integration.disconnected' : 'integration.paused', 'integration', id, i.provider);
         },
+        connectIntegration: (catalogId) => {
+          const cat = catalogEntry(catalogId);
+          if (!cat) return;
+          const existing = get().integrations.find((i) => i.orgId === orgId() && i.provider === catalogId);
+          if (existing) {
+            set((s) => ({ integrations: mapIn(s.integrations, existing.id, (i) => ({ ...i, status: 'connected', error: null, lastSync: Date.now() })) }));
+          } else {
+            const row: Integration = {
+              id: uid('int'), orgId: orgId(), provider: cat.id, category: cat.category, description: cat.blurb,
+              status: 'connected', lastSync: Date.now(), error: null, scopes: cat.scopes, capabilities: cat.capabilities,
+            };
+            set((s) => ({ integrations: [...s.integrations, row] }));
+          }
+          get().log('integration.connected', 'integration', existing?.id ?? null, cat.name);
+          toast({ kind: 'success', title: `${cat.name} connected`, body: 'Credentials stored in the secret vault, never in the database.' });
+        },
         testIntegration: async (id) => {
           await sleep(1100);
           const i = get().integrations.find((x) => x.id === id)!;
@@ -1048,7 +1066,7 @@ export const useStore = create<Store>()(
       };
     },
     {
-      name: 'estate-os:data:v5', // v5: US demo agencies, scores capped at 100
+      name: 'estate-os:data:v6', // v6: Google Calendar renamed to Google Workspace for the integrations marketplace
       // Live mode keeps business data in memory only; nothing tenant-owned is written to the browser.
       storage: createJSONStorage(() => (LIVE ? { getItem: () => null, setItem: () => undefined, removeItem: () => undefined } : localStorage)),
       partialize: (s) => {
