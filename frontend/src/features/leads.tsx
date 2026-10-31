@@ -591,7 +591,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
         <div className="form-grid">
-          <Field label="Full name" error={errors.name}><Input value={f.name} onChange={set('name')} invalid={!!errors.name} placeholder="e.g. Riya Malhotra" data-autofocus /></Field>
+          <Field label="Full name" error={errors.name}><Input value={f.name} onChange={set('name')} invalid={!!errors.name} placeholder="e.g. Emma Carter" data-autofocus /></Field>
           <Field label="Lead type">
             <Select value={f.type} onChange={set('type')}>
               {['buyer', 'tenant', 'investor', 'seller', 'landlord'].map((t) => <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>)}
@@ -618,7 +618,7 @@ export function NewLeadModal({ onClose }: { onClose: () => void }) {
             </Select>
           </Field>
           <Field label={f.type === 'tenant' ? `Monthly rent up to (${currencySymbol()})` : `Budget up to (${budgetInputUnit().label})`} error={errors.budget} hint="Leave blank if unknown — it stays unknown.">
-            <Input value={f.budget} onChange={set('budget')} invalid={!!errors.budget} inputMode="decimal" placeholder={f.type === 'tenant' ? '85000' : '160'} />
+            <Input value={f.budget} onChange={set('budget')} invalid={!!errors.budget} inputMode="decimal" placeholder={budgetInputUnit().multiplier === 1 ? (f.type === 'tenant' ? '3000' : '650000') : f.type === 'tenant' ? '85000' : '160'} />
           </Field>
           <Field label="Preferred locality" hint="Leave blank if unknown.">
             <Input value={f.location} onChange={set('location')} list="lead-localities" placeholder="e.g. Downtown" />

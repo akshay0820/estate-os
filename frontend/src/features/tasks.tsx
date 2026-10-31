@@ -140,7 +140,7 @@ export function TaskModal({ task, onClose, preset }: { task?: Task; onClose: () 
   return (
     <Modal open onClose={onClose} title={task ? 'Edit task' : 'New task'} footer={<><Button onClick={onClose}>Cancel</Button><Button variant="primary" loading={busy} onClick={() => void submit()}>{task ? 'Save' : 'Create task'}</Button></>}>
       <div className="form-grid">
-        <Field label="Title" className="full" error={err || null}><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Send floor plans to Riya" data-autofocus invalid={!!err && !f.title} /></Field>
+        <Field label="Title" className="full" error={err || null}><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Send floor plans to Emma" data-autofocus invalid={!!err && !f.title} /></Field>
         <Field label="Due"><Input type="datetime-local" value={f.dueAt} onChange={(e) => setF({ ...f, dueAt: e.target.value })} /></Field>
         <Field label="Priority">
           <Select value={f.priority} onChange={(e) => setF({ ...f, priority: e.target.value as Task['priority'] })}>

@@ -1,0 +1,397 @@
+/* Motion layer, loaded after components.css. Everything animates transform, opacity or filter only (compositor-friendly),
+   entrances use `backwards` fill so nothing keeps a transform after it lands (a lingering transform would trap the
+   fixed bulk bar), and base.css switches all of it off for prefers-reduced-motion. */
+
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --spot: rgba(255, 91, 31, 0.07);
+  --glass-border-hover: rgba(28, 28, 28, 0.14);
+  --pill-shadow: 0 6px 18px -8px rgba(28, 28, 28, 0.45);
+}
+
+/* A real spring (small overshoot, quick settle) where the browser supports linear() easing. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --spring: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1);
+  }
+}
+
+[data-theme='dark'] {
+  --spot: rgba(255, 122, 69, 0.11);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --pill-shadow: 0 6px 20px -8px rgba(255, 255, 255, 0.25);
+}
+
+/* ───────── Pages: the page sharpens into place, then its sections and cards cascade in ───────── */
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+.page {
+  animation: page-in 0.55s var(--ease-out-expo) backwards;
+}
+
+.page > :not(.bulkbar),
+.grid > * {
+  animation: rise-in 0.6s var(--ease-out-expo) backwards;
+}
+
+.page > :nth-child(2) { animation-delay: 0.05s; }
+.page > :nth-child(3) { animation-delay: 0.1s; }
+.page > :nth-child(4) { animation-delay: 0.15s; }
+.page > :nth-child(5) { animation-delay: 0.2s; }
+.page > :nth-child(6) { animation-delay: 0.25s; }
+.page > :nth-child(n + 7) { animation-delay: 0.3s; }
+
+.grid > :nth-child(1) { animation-delay: 0.08s; }
+.grid > :nth-child(2) { animation-delay: 0.125s; }
+.grid > :nth-child(3) { animation-delay: 0.17s; }
+.grid > :nth-child(4) { animation-delay: 0.215s; }
+.grid > :nth-child(5) { animation-delay: 0.26s; }
+.grid > :nth-child(6) { animation-delay: 0.305s; }
+.grid > :nth-child(n + 7) { animation-delay: 0.35s; }
+
+/* Table rows and list rows slide in one after another when they first appear (sorting keeps rows mounted). */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.table tbody tr,
+.list-row {
+  animation: row-in 0.45s var(--ease-out-expo) backwards;
+}
+
+.table tbody tr:nth-child(1), .list-row:nth-child(1) { animation-delay: 0.12s; }
+.table tbody tr:nth-child(2), .list-row:nth-child(2) { animation-delay: 0.14s; }
+.table tbody tr:nth-child(3), .list-row:nth-child(3) { animation-delay: 0.16s; }
+.table tbody tr:nth-child(4), .list-row:nth-child(4) { animation-delay: 0.18s; }
+.table tbody tr:nth-child(5), .list-row:nth-child(5) { animation-delay: 0.2s; }
+.table tbody tr:nth-child(6), .list-row:nth-child(6) { animation-delay: 0.22s; }
+.table tbody tr:nth-child(7), .list-row:nth-child(7) { animation-delay: 0.24s; }
+.table tbody tr:nth-child(8), .list-row:nth-child(8) { animation-delay: 0.26s; }
+.table tbody tr:nth-child(9), .list-row:nth-child(9) { animation-delay: 0.28s; }
+.table tbody tr:nth-child(10), .list-row:nth-child(10) { animation-delay: 0.3s; }
+.table tbody tr:nth-child(n + 11), .list-row:nth-child(n + 11) { animation-delay: 0.32s; }
+
+.table tbody tr {
+  transition: background-color 0.2s;
+}
+
+/* ───────── Cards: a soft ember spotlight follows the cursor (lib/motion.ts); clickable cards lift ───────── */
+
+.card {
+  transition: border-color 0.3s, box-shadow 0.35s, transform 0.5s var(--spring);
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 0%), var(--spot), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.card:hover::after {
+  opacity: 1;
+}
+
+.card:hover {
+  border-color: var(--glass-border-hover);
+}
+
+:is(button.card, a.card, button.kpi, .prop-card):hover,
+.kb-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-highlight), 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+}
+
+:is(button.card, a.card, button.kpi, .prop-card):active,
+.kb-card:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: 0.12s;
+}
+
+.kb-card {
+  transition: border-color 0.2s, box-shadow 0.3s, transform 0.45s var(--spring);
+}
+
+/* ───────── Buttons: lift on hover, spring on press, a light sweep across primary and ember buttons ───────── */
+
+.btn {
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.3s, transform 0.4s var(--spring);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
+}
+
+.btn-primary,
+.btn-accent {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-primary::after,
+.btn-accent::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 140, 80, 0.32) 50%, transparent 75%);
+  transform: translateX(-120%);
+  transition: transform 0.75s var(--ease-out-expo);
+}
+
+.btn-accent::after {
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.45) 50%, transparent 75%);
+}
+
+.btn-primary:hover:not(:disabled)::after,
+.btn-accent:hover:not(:disabled)::after {
+  transform: translateX(120%);
+}
+
+.btn-accent:hover:not(:disabled) {
+  box-shadow: 0 10px 26px -10px rgba(255, 91, 31, 0.75);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 10px 26px -12px rgba(0, 0, 0, 0.5);
+}
+
+.btn svg {
+  transition: transform 0.4s var(--spring);
+}
+
+.btn:hover:not(:disabled) svg {
+  transform: scale(1.08);
+}
+
+/* Inputs: the focus ring grows in instead of snapping. */
+.input,
+.select,
+.textarea {
+  transition: border-color 0.2s, box-shadow 0.3s var(--ease-out-expo), background-color 0.2s;
+}
+
+.switch::after {
+  transition: transform 0.45s var(--spring), width 0.2s;
+}
+
+.switch:active:not(:disabled)::after {
+  width: 19px;
+}
+
+.switch.on:active:not(:disabled)::after {
+  transform: translateX(11px);
+}
+
+/* ───────── Sidebar: one pill slides between items (Shell.tsx) ───────── */
+
+.sb-scroll {
+  position: relative;
+}
+
+.sb-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 9px;
+  background: var(--primary);
+  box-shadow: var(--pill-shadow);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.sb-pill[data-ready] {
+  transition: transform 0.55s var(--spring), width 0.4s var(--ease-out-expo), height 0.4s var(--ease-out-expo), opacity 0.25s;
+}
+
+.sb-item {
+  z-index: 1;
+  transition: background-color 0.2s, color 0.25s;
+}
+
+.has-pill .sb-item.active,
+.has-pill .sb-item.active:hover {
+  background: transparent;
+}
+
+.sb-item svg {
+  transition: transform 0.45s var(--spring);
+}
+
+.sb-item:hover svg {
+  transform: translateX(2px) scale(1.08);
+}
+
+/* ───────── Segmented controls and tabs: the selection glides (components/ui.tsx) ───────── */
+
+.seg {
+  position: relative;
+}
+
+.seg button {
+  position: relative;
+  z-index: 1;
+}
+
+.seg-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 7px;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--border);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.seg-thumb[data-ready] {
+  transition: transform 0.5s var(--spring), width 0.35s var(--ease-out-expo), opacity 0.2s;
+}
+
+.seg.has-thumb button.on {
+  background: transparent;
+  box-shadow: none;
+}
+
+.tabs {
+  position: relative;
+}
+
+.tab-ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(255, 91, 31, 0.6);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.tab-ink[data-ready] {
+  transition: transform 0.5s var(--spring), width 0.35s var(--ease-out-expo), opacity 0.2s;
+}
+
+.tabs.has-ink .tab.on::after {
+  display: none;
+}
+
+.tab {
+  transition: color 0.25s;
+}
+
+/* ───────── Floating layers: spring in ───────── */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-sharpen {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+.overlay {
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  animation: fade-in 0.3s var(--ease-out-expo);
+}
+
+@keyframes modal-in {
+  from {
+    transform: translate(-50%, -46%) scale(0.92);
+  }
+}
+
+.modal {
+  animation: modal-in 0.6s var(--spring), fade-sharpen 0.3s var(--ease-out-expo);
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(48px);
+  }
+}
+
+.drawer {
+  animation: drawer-in 0.6s var(--spring), fade-in 0.25s var(--ease-out-expo);
+}
+
+@keyframes menu-in {
+  from {
+    transform: translateY(-6px) scale(0.92);
+  }
+}
+
+.menu,
+.panel {
+  animation: menu-in 0.4s var(--spring), fade-in 0.18s var(--ease-out-expo);
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(28px) scale(0.9);
+  }
+}
+
+.toast {
+  animation: toast-in 0.6s var(--spring), fade-in 0.25s var(--ease-out-expo);
+}
+
+@keyframes cmdk-in {
+  from {
+    transform: translateX(-50%) translateY(-10px) scale(0.94);
+  }
+}
+
+.cmdk {
+  animation: cmdk-in 0.55s var(--spring), fade-sharpen 0.28s var(--ease-out-expo);
+}
+
+@keyframes bulk-in {
+  from {
+    transform: translate(-50%, 24px) scale(0.92);
+  }
+}
+
+.bulkbar {
+  animation: bulk-in 0.55s var(--spring), fade-in 0.2s var(--ease-out-expo);
+}

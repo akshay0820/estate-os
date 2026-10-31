@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, Suspense, useEffect, type ComponentType } from 'react';
 import { Compass, PlugZap } from 'lucide-react';
 import { Shell } from '@/layout/Shell';
 import { AuthGate } from '@/layout/AuthGate';
@@ -14,8 +14,22 @@ import { navigate, useRoute } from '@/lib/router';
 
 type Page = ComponentType<{ params: URLSearchParams }>;
 
-const lazyPage = (load: () => Promise<Record<string, unknown>>, name: string) =>
-  lazy(async () => ({ default: (await load())[name] as Page }));
+// Each page's code loads on first visit; once the app is idle every page is fetched in the background, so moving
+// between pages is instant. The promise is shared, so a page is never downloaded twice.
+const pageLoaders: (() => Promise<unknown>)[] = [];
+const lazyPage = (load: () => Promise<Record<string, unknown>>, name: string) => {
+  let loading: Promise<{ default: Page }> | null = null;
+  const get = () => (loading ??= load().then((m) => ({ default: m[name] as Page })));
+  pageLoaders.push(get);
+  return lazy(get);
+};
+
+function preloadPages() {
+  const run = () => pageLoaders.forEach((get) => void get().catch(() => undefined));
+  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  if (idle) idle(run, { timeout: 4000 });
+  else setTimeout(run, 2000);
+}
 
 const PAGES: Record<string, Page> = {
   dashboard: lazyPage(() => import('@/features/dashboard'), 'Dashboard'),
@@ -55,6 +69,7 @@ const NOT_CONNECTED: Record<string, string> = {
 };
 
 export default function App() {
+  useEffect(preloadPages, []);
   return (
     <>
       <AuthGate>

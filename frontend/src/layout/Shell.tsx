@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { NAV, NAV_FLAT, PAGE_TITLE } from './nav';
 import { Brand } from './Brand';
+import { useGlide } from '@/lib/motion';
 import { Avatar, Button, Menu, Switch } from '@/components/ui';
 import { confirm } from '@/components/dialogs';
 import { LIVE, useStore } from '@/store/store';
@@ -87,6 +88,9 @@ function Sidebar({ page }: { page: string }) {
     tasks: tasks.filter((t) => t.assignedTo === me.id && t.status !== 'completed' && t.status !== 'cancelled' && t.dueAt < Date.now()).length || undefined,
   };
 
+  // One pill glides to the active item (styles/motion.css).
+  const nav = useGlide<HTMLDivElement>('.sb-item.active', [page, collapsed, me.role]);
+
   const toggleKill = async (v: boolean) => {
     if (v) {
       const r = await confirm({
@@ -116,7 +120,8 @@ function Sidebar({ page }: { page: string }) {
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         />
       </div>
-      <div className="sb-scroll">
+      <div ref={nav.box} className="sb-scroll has-pill">
+        <span ref={nav.ink} className="sb-pill" aria-hidden />
         {NAV.map((section) => {
           const items = section.items.filter((i) => !i.cap || can(me.role, i.cap));
           if (!items.length) return null;

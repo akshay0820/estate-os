@@ -13,6 +13,7 @@ import {
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Loader2, X, ImageOff, Sparkles } from 'lucide-react';
 import { cx } from '@/lib/util';
+import { useGlide } from '@/lib/motion';
 import { initials } from '@/lib/format';
 import type { Tone } from '@/lib/domain';
 import { PROPERTY_IMAGES } from '@/store/seed';
@@ -334,8 +335,10 @@ export function Switch({ on, onChange, disabled, danger, label }: { on: boolean;
 }
 
 export function Segmented<T extends string>({ value, onChange, options, mono, size }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[]; mono?: boolean; size?: 'sm' }) {
+  const { box, ink } = useGlide<HTMLDivElement>('button.on', [value, options.length]);
   return (
-    <div className={cx('seg', mono && 'mono')} role="tablist" data-size={size}>
+    <div ref={box} className={cx('seg', 'has-thumb', mono && 'mono')} role="tablist" data-size={size}>
+      <span ref={ink} className="seg-thumb" aria-hidden />
       {options.map((o) => (
         <button key={o.value} role="tab" aria-selected={value === o.value} className={cx(value === o.value && 'on')} onClick={() => onChange(o.value)}>
           {o.label}
@@ -346,8 +349,10 @@ export function Segmented<T extends string>({ value, onChange, options, mono, si
 }
 
 export function Tabs<T extends string>({ value, onChange, tabs }: { value: T; onChange: (v: T) => void; tabs: { value: T; label: ReactNode; count?: number }[] }) {
+  const { box, ink } = useGlide<HTMLDivElement>('.tab.on', [value, tabs.map((t) => `${t.value}:${t.count ?? ''}`).join()], 'underline');
   return (
-    <div className="tabs" role="tablist">
+    <div ref={box} className="tabs has-ink" role="tablist">
+      <span ref={ink} className="tab-ink" aria-hidden />
       {tabs.map((t) => (
         <button key={t.value} role="tab" aria-selected={value === t.value} className={cx('tab', value === t.value && 'on')} onClick={() => onChange(t.value)}>
           {t.label}
