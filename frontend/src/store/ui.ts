@@ -60,13 +60,25 @@ export const useUi = create<UiState>((set, get) => ({
   setMobileOpen: (mobileOpen) => set({ mobileOpen }),
   toggleTheme: () => {
     const theme = get().theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem('estate-os:theme', theme);
-    } catch {
-      /* storage unavailable */
+    const apply = () => {
+      document.documentElement.dataset.theme = theme;
+      try {
+        localStorage.setItem('estate-os:theme', theme);
+      } catch {
+        /* storage unavailable */
+      }
+      set({ theme });
+    };
+    // The new theme sweeps in from the top-right corner (where the toggle sits) to the bottom-left, using the View
+    // Transitions API (base.css). Browsers without it, or users who prefer reduced motion, get an instant switch.
+    const doc = document as Document & { startViewTransition?: (update: () => void) => { finished: Promise<void> } };
+    if (!doc.startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      apply();
+      return;
     }
-    set({ theme });
+    const root = document.documentElement;
+    root.classList.add('theme-switching');
+    doc.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-switching'));
   },
 }));
 

@@ -74,6 +74,32 @@ body::after {
   }
 }
 
+/* Theme switch (store/ui.ts toggleTheme): the new theme is revealed by a circle growing from the top-right corner until
+   it covers the bottom-left. Colour transitions are paused meanwhile so the new snapshot is not also fading. */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
+.theme-switching::view-transition-old(root),
+.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-switching::view-transition-new(root) {
+  animation: theme-reveal 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0% at 100% 0%);
+  }
+  to {
+    clip-path: circle(150% at 100% 0%);
+  }
+}
+
 h1,
 h2,
 h3,
