@@ -54,6 +54,25 @@ describe('proposed actions', () => {
   });
 });
 
+describe('calls, drafts and automations', () => {
+  it('checks call readiness through the policy RPC and validates call and follow-up proposals', () => {
+    expect(readCall('call_readiness', { lead_id: LEAD }, 'org')).toEqual({ rpc: 'voice_call_preflight', args: { p_lead: LEAD } });
+    expect(readCall('list_automations', {}, 'org')).toEqual({ rpc: 'assistant_automations', args: { p_org: 'org' } });
+    expect(proposeAction('call_lead', { summary: 'Call Emma', lead_id: LEAD, reason: 'New lead' }, NOW)).toEqual({ ok: true, action: { kind: 'call_lead', summary: 'Call Emma', leadId: LEAD, reason: 'New lead' } });
+    expect(proposeAction('call_lead', { summary: 'Call Emma', lead_id: 'Emma' }, NOW)).toMatchObject({ ok: false });
+    expect(proposeAction('request_follow_up', { summary: 's', lead_id: LEAD, purpose: 're_engagement' }, NOW)).toMatchObject({ ok: true, action: { purpose: 're_engagement' } });
+    expect(proposeAction('request_follow_up', { summary: 's', lead_id: LEAD, purpose: 'send_now' }, NOW)).toMatchObject({ ok: false });
+  });
+
+  it('validates automation proposals', () => {
+    expect(proposeAction('create_automation', { summary: 's', name: 'Morning briefing', kind: 'daily_briefing', run_at: '08:30', days: [5, 1, 1, 9] }, NOW))
+      .toEqual({ ok: true, action: { kind: 'create_automation', summary: 's', name: 'Morning briefing', automationKind: 'daily_briefing', runAt: '08:30', days: [1, 5], settings: {} } });
+    expect(proposeAction('create_automation', { summary: 's', name: 'x', kind: 'send_texts', run_at: '08:30', days: [1] }, NOW)).toMatchObject({ ok: false });
+    expect(proposeAction('create_automation', { summary: 's', name: 'x', kind: 'daily_briefing', run_at: '8:30am', days: [1] }, NOW)).toMatchObject({ ok: false, reason: 'run_at must be HH:MM (24-hour)' });
+    expect(proposeAction('create_automation', { summary: 's', name: 'x', kind: 'daily_briefing', run_at: '08:30', days: [] }, NOW)).toMatchObject({ ok: false });
+  });
+});
+
 describe('conversation handling', () => {
   it('keeps plain alternating turns that start with the user, within limits', () => {
     const raw = [
@@ -84,7 +103,8 @@ describe('conversation handling', () => {
   it('states the rules the assistant must follow', () => {
     const p = systemPrompt({ orgName: 'Skyline Realty', userName: 'Jordan Ellis', role: 'owner', timezone: 'America/Chicago', currency: 'USD', nowIso: '2026-11-02T15:00:00Z', localNow: 'Mon Nov 2, 9:00 am' });
     expect(p).toMatch(/only proposes the change/);
-    expect(p).toMatch(/cannot send messages/);
+    expect(p).toMatch(/cannot send emails or texts yourself/);
+    expect(p).toMatch(/run call_readiness/);
     expect(p).toMatch(/Never invent/);
     expect(p).toContain('America/Chicago');
   });

@@ -418,3 +418,31 @@
     bottom: 16px;
   }
 }
+
+/* Automations page (features/automations.tsx): weekday toggles and paused cards. */
+.day-chip {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.35s var(--spring);
+}
+
+.day-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+
+.day-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #160a05;
+}
+
+.card.is-off {
+  opacity: 0.6;
+}

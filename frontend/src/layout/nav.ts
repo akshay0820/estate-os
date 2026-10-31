@@ -1,7 +1,8 @@
 import {
   Activity,
-  BadgeIndianRupee,
+  BadgeDollarSign,
   Bot,
+  CalendarClock,
   Building2,
   CalendarDays,
   CheckSquare,
@@ -68,6 +69,7 @@ export const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { key: 'pilot', label: 'Pilot operations', icon: Gauge, cap: 'logs.view' },
       { key: 'agents', label: 'AI agents', icon: Bot, cap: 'logs.view' },
+      { key: 'automations', label: 'Automations', icon: CalendarClock, cap: 'leads.view' },
       { key: 'workflows', label: 'Workflows', icon: Workflow, cap: 'logs.view' },
       { key: 'approvals', label: 'Approvals', icon: ClipboardCheck, cap: 'approvals.decide' },
       { key: 'dataquality', label: 'Data quality', icon: DatabaseZap, cap: 'leads.view' },
@@ -78,7 +80,7 @@ export const NAV: { section: string; items: NavItem[] }[] = [
     section: 'Business',
     items: [
       { key: 'team', label: 'Team', icon: UsersRound, cap: 'team.view' },
-      { key: 'finance', label: 'Finance', icon: BadgeIndianRupee, cap: 'finance.view' },
+      { key: 'finance', label: 'Finance', icon: BadgeDollarSign, cap: 'finance.view' },
       { key: 'reports', label: 'Reports', icon: BarChart3, cap: 'reports.view' },
     ],
   },

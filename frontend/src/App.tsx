@@ -46,6 +46,7 @@ const PAGES: Record<string, Page> = {
   followups: lazyPage(() => import('@/features/followups'), 'FollowUpsPage'),
   pilot: lazyPage(() => import('@/features/pilot'), 'PilotPage'),
   agents: lazyPage(() => import('@/features/agents'), 'AgentsPage'),
+  automations: lazyPage(() => import('@/features/automations'), 'AutomationsPage'),
   workflows: lazyPage(() => import('@/features/workflows'), 'WorkflowsPage'),
   approvals: lazyPage(() => import('@/features/approvals'), 'ApprovalsPage'),
   dataquality: lazyPage(() => import('@/features/dataQuality'), 'DataQualityPage'),

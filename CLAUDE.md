@@ -68,6 +68,12 @@ and write tools only *propose* changes (`_shared/assistant.ts` validates them). 
 and runs it through `data/actions.ts` when the user confirms (`lib/assistant.ts`). Demo mode answers from sample data
 with rules in `lib/assistantDemo.ts`. Keep the tool list, the proposal kinds and both clients in step.
 
+**Automations (Agent schedules).** `features/automations.tsx` manages `agent_automations` (migration 0029); pg_cron runs
+`automations_tick()` every 5 minutes. Automations prepare work only (briefing notifications, follow-up tasks, Follow-Up
+Agent drafts, `agent_call_queue` rows). A queued AI call is placed only when a person approves it: the app calls
+`voice-calls/call` (full call policy) and then records it with `call_queue_decide`. Demo mode mirrors this in
+`lib/automationsDemo.ts`; schedule and settings rules shared with tests live in `lib/automationRules.ts`.
+
 Edge Functions:
 - Import `jsr:@supabase/supabase-js@2.118.0` exactly; predeploy enforces the pin.
 - Take model names from `*_MODEL` env vars, defaulting to `claude-opus-5-5`.

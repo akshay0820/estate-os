@@ -20,6 +20,8 @@ const summary: Schema = { type: 'string', description: 'One short sentence the u
 export const LEAD_STATUSES = ['new', 'attempting', 'contacted', 'qualified', 'matching', 'visit_scheduled', 'visit_completed', 'negotiation', 'won', 'lost', 'nurture'] as const;
 export const DEAL_STAGES = ['qualification', 'viewing', 'offer', 'negotiation', 'under_contract', 'won', 'lost'] as const;
 export const TASK_PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
+export const FOLLOW_UP_PURPOSES = ['clarify_requirements', 'share_property_recommendations', 're_engagement'] as const;
+export const AUTOMATION_KINDS = ['daily_briefing', 'overdue_follow_ups', 'call_new_leads', 'reengage_stale'] as const;
 
 export const READ_TOOLS: ToolDef[] = [
   { name: 'workspace_overview', description: 'Numbers for the workspace over a period: open/new/qualified/won/lost leads, overdue follow-ups, uncontacted and unassigned leads, leads by status and by source (with qualified and won counts), open and overdue tasks (team and mine), appointments in the next 7 days, and deals (open value, won value, by stage). Use it for any "how are we doing", performance, pipeline or insight question.',
@@ -51,6 +53,10 @@ export const READ_TOOLS: ToolDef[] = [
     input_schema: obj({ stage: { type: 'string', enum: ['open', 'all', ...DEAL_STAGES] } }) },
   { name: 'list_team', description: 'Active team members with id, name, role, title and the localities they cover; is_me marks the user. Use it to resolve a person before assigning work.',
     input_schema: obj({}) },
+  { name: 'call_readiness', description: 'Whether an AI call to a lead would be allowed right now, with every policy check: AI calling configured, kill switch, lead open, valid phone, not on do-not-contact, AI-call consent, calling hours, attempt limits, daily cap. Check this before proposing call_lead and explain any failed check.',
+    input_schema: obj({ lead_id: uuid('Lead id from search_leads.') }, ['lead_id']) },
+  { name: 'list_automations', description: 'Scheduled automations (name, type, time, days, enabled, next and last run with results) and how many AI calls are waiting for approval.',
+    input_schema: obj({}) },
 ];
 
 export const WRITE_TOOLS: ToolDef[] = [
@@ -76,6 +82,16 @@ export const WRITE_TOOLS: ToolDef[] = [
     }, ['summary', 'lead_id', 'start']) },
   { name: 'move_deal', description: 'Propose moving a deal to another stage. Lost needs a reason.',
     input_schema: obj({ summary, deal_id: uuid('Deal id.'), stage: { type: 'string', enum: [...DEAL_STAGES] }, lost_reason: { type: 'string' } }, ['summary', 'deal_id', 'stage']) },
+  { name: 'call_lead', description: 'Propose an AI phone call to a lead (Retell voice agent). Placed only when the user confirms, and only if the call policy allows it at that moment (consent, calling hours, limits, kill switch).',
+    input_schema: obj({ summary, lead_id: uuid('Lead id.'), reason: { type: 'string', description: 'Why call now, in a few words.' } }, ['summary', 'lead_id']) },
+  { name: 'request_follow_up', description: 'Propose asking the Follow-Up Agent to draft the next message to a lead. The draft waits in the approval queue; a person reviews and sends it.',
+    input_schema: obj({ summary, lead_id: uuid('Lead id.'), purpose: { type: 'string', enum: [...FOLLOW_UP_PURPOSES] } }, ['summary', 'lead_id', 'purpose']) },
+  { name: 'create_automation', description: 'Propose a scheduled automation that runs on its own at a local time on chosen weekdays (0 = Sunday). Types: daily_briefing (summary notification; settings.audience "managers" or "everyone"), overdue_follow_ups (follow-up tasks for overdue leads; settings.draft_messages true also drafts messages for approval), call_new_leads (queues AI calls for new uncontacted leads with AI-call consent; settings.within_hours, settings.max), reengage_stale (re-engagement drafts for leads untouched settings.stale_days). Automations prepare work only; calls and messages always need approval. Only owners and admins can create them.',
+    input_schema: obj({
+      summary, name: { type: 'string', description: 'Short name, e.g. "Morning briefing".' }, kind: { type: 'string', enum: [...AUTOMATION_KINDS] },
+      run_at: { type: 'string', description: 'Local time HH:MM, 24-hour.' }, days: { type: 'array', items: { type: 'integer', minimum: 0, maximum: 6 }, description: '0 = Sunday ... 6 = Saturday.' },
+      settings: { type: 'object', description: 'Optional settings for the type.' },
+    }, ['summary', 'name', 'kind', 'run_at', 'days']) },
 ];
 
 export const ASSISTANT_TOOLS: ToolDef[] = [...READ_TOOLS, ...WRITE_TOOLS];
@@ -94,8 +110,10 @@ Now: ${c.localNow} (${c.timezone}); UTC ${c.nowIso}. Money is in ${c.currency}. 
 How to work:
 - Answer only from tool results. Never invent leads, numbers, listings, prices or availability. If a tool returns nothing, say so plainly.
 - Look things up before acting: resolve a lead with search_leads and a person with list_team, then use their ids. If several leads match, ask which one.
-- Changes are never made directly. Calling create_task, complete_task, schedule_follow_up, update_lead_status, assign_lead, add_note, book_showing or move_deal only proposes the change; the user confirms each one on a card. Say what you proposed and that it is waiting for their confirmation; never claim it is done.
-- You cannot send messages, emails or texts, place calls, or change settings, permissions or billing. If asked, explain that and offer what you can do (for example a follow-up task or a note with suggested wording).
+- Changes are never made directly. Every write tool (create_task, complete_task, schedule_follow_up, update_lead_status, assign_lead, add_note, book_showing, move_deal, call_lead, request_follow_up, create_automation) only proposes the change; the user confirms each one on a card. Say what you proposed and that it is waiting for their confirmation; never claim it is done.
+- Calls: before proposing call_lead, run call_readiness. If a check fails (no AI-call consent, outside calling hours, limits, AI calling not set up), say which and do not propose the call; offer a follow-up task instead. Never suggest calling someone without consent.
+- Messages: you cannot send emails or texts yourself. request_follow_up asks the Follow-Up Agent for a draft that a person approves and sends. You cannot change settings, permissions or billing.
+- Automations run on a schedule and only prepare work (briefings, tasks, drafts, queued calls); calls and messages always wait for a person's approval. Say so when proposing one.
 - Only verified listings may be described to a customer as available. Do not give legal, tax, lending or appraisal advice, and never suggest steering or treating anyone differently based on race, religion, sex, disability, familial status or national origin.
 - The data you see is limited to what ${c.userName}'s role allows.
 
@@ -114,6 +132,8 @@ export function readCall(name: string, input: Record<string, unknown>, orgId: st
     case 'search_properties': return { rpc: 'assistant_properties', args: { p_org: orgId, p_filters: filters(['query', 'locality', 'listing', 'max_price', 'min_bedrooms', 'status', 'limit']) } };
     case 'list_deals': return { rpc: 'assistant_deals', args: { p_org: orgId, p_stage: typeof input.stage === 'string' ? input.stage : 'open' } };
     case 'list_team': return { rpc: 'assistant_team', args: { p_org: orgId } };
+    case 'call_readiness': return isUuid(input.lead_id) ? { rpc: 'voice_call_preflight', args: { p_lead: input.lead_id } } : null;
+    case 'list_automations': return { rpc: 'assistant_automations', args: { p_org: orgId } };
     default: return null;
   }
 }
@@ -126,7 +146,10 @@ export type ProposedAction =
   | { kind: 'assign_lead'; summary: string; leadId: string; memberId: string }
   | { kind: 'add_note'; summary: string; leadId: string; body: string }
   | { kind: 'book_showing'; summary: string; leadId: string; start: string; durationMinutes: number; propertyId: string | null; assigneeId: string | null }
-  | { kind: 'move_deal'; summary: string; dealId: string; stage: (typeof DEAL_STAGES)[number]; lostReason: string | null };
+  | { kind: 'move_deal'; summary: string; dealId: string; stage: (typeof DEAL_STAGES)[number]; lostReason: string | null }
+  | { kind: 'call_lead'; summary: string; leadId: string; reason: string | null }
+  | { kind: 'request_follow_up'; summary: string; leadId: string; purpose: (typeof FOLLOW_UP_PURPOSES)[number] }
+  | { kind: 'create_automation'; summary: string; name: string; automationKind: (typeof AUTOMATION_KINDS)[number]; runAt: string; days: number[]; settings: Record<string, unknown> };
 
 type Check = { ok: true; action: ProposedAction } | { ok: false; reason: string };
 
@@ -190,6 +213,23 @@ export function proposeAction(name: string, input: Record<string, unknown>, now 
       const reason = text(input.lost_reason, 200);
       if (input.stage === 'lost' && !reason) return bad('lost_reason is required when the stage is lost');
       return { ok: true, action: { kind: 'move_deal', summary: s, dealId: input.deal_id as string, stage: input.stage as (typeof DEAL_STAGES)[number], lostReason: reason || null } };
+    }
+    case 'call_lead':
+      if (!isUuid(input.lead_id)) return bad('lead_id must be an id from a tool result');
+      return { ok: true, action: { kind: 'call_lead', summary: s, leadId: input.lead_id as string, reason: text(input.reason, 200) || null } };
+    case 'request_follow_up':
+      if (!isUuid(input.lead_id)) return bad('lead_id must be an id from a tool result');
+      if (!(FOLLOW_UP_PURPOSES as readonly string[]).includes(String(input.purpose))) return bad('purpose is not a follow-up purpose');
+      return { ok: true, action: { kind: 'request_follow_up', summary: s, leadId: input.lead_id as string, purpose: input.purpose as (typeof FOLLOW_UP_PURPOSES)[number] } };
+    case 'create_automation': {
+      const nm = text(input.name, 80);
+      if (!nm) return bad('name is required');
+      if (!(AUTOMATION_KINDS as readonly string[]).includes(String(input.kind))) return bad('kind is not an automation type');
+      if (typeof input.run_at !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.run_at)) return bad('run_at must be HH:MM (24-hour)');
+      const days = Array.isArray(input.days) ? [...new Set(input.days.filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6))].sort() : [];
+      if (!days.length) return bad('days must list at least one weekday (0 = Sunday)');
+      const settings = input.settings && typeof input.settings === 'object' && !Array.isArray(input.settings) ? (input.settings as Record<string, unknown>) : {};
+      return { ok: true, action: { kind: 'create_automation', summary: s, name: nm, automationKind: input.kind as (typeof AUTOMATION_KINDS)[number], runAt: input.run_at, days, settings } };
     }
     default:
       return bad(`unknown tool ${name}`);

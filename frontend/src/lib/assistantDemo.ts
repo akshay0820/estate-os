@@ -2,9 +2,10 @@
 // backend or an AI key. It covers the common questions and requests and proposes the same confirmable actions as the
 // live assistant. Pure: everything comes from the snapshot and `now`.
 import { money, fmtDateTime, relTime } from '@/lib/format';
-import { OPEN_LEAD } from '@/lib/domain';
+import { OPEN_LEAD, outboundPolicy } from '@/lib/domain';
 import type { Lead, LeadStatus, Member } from '@/store/types';
 import type { AssistantAction, AssistantAnswer, Snapshot } from './assistant';
+import { AUTOMATION_LABEL, daysLabel } from './automationRules';
 
 const DAY = 864e5;
 const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -92,8 +93,42 @@ export function demoReply(question: string, s: Snapshot, now: number): Assistant
   const propose = (a: AssistantAction, intro: string): AssistantAnswer => ({ reply: `${intro}\n\nConfirm below and I’ll do it. Nothing changes until you do.`, actions: [a] });
 
   // ── Requests that change something: proposed, never applied directly ──
-  if (/\b(send|text|email|sms|whatsapp|call)\b.*\b(him|her|them|lead|client|customer|now)\b/.test(t) && !/\b(task|remind|follow)/.test(t)) {
-    return { reply: 'I can’t send messages or place calls. Outreach always goes through a person. I can create a follow-up task or add a note with suggested wording instead. Want me to?', actions: [] };
+  // Schedules: "every weekday at 8:30 send me a briefing", "set up a daily overdue sweep at 9".
+  const autoKind = automationKind(t);
+  if (autoKind && /\b(every|each|daily|weekdays?|weekends?|automation|automate|schedule|set up|recurring)\b/.test(t)) {
+    const runAt = timeOf(t) ?? (autoKind === 'daily_briefing' ? '08:30' : '09:00');
+    const days = daysOf(t);
+    const name = AUTOMATION_LABEL[autoKind].replace(' (approval queue)', '');
+    const settings = autoKind === 'overdue_follow_ups' && /\b(drafts?|messages?|texts?)\b/.test(t) ? { draft_messages: true } : {};
+    return propose({ id: actionId(), kind: 'create_automation', summary: `${name}: ${daysLabel(days)} at ${runAt}`, name, automationKind: autoKind, runAt, days, settings },
+      `I’ll schedule **${name}** for ${daysLabel(days).toLowerCase()} at ${runAt}. It prepares work on its own; calls and messages still wait for approval.`);
+  }
+  if (/\b(automations?|schedules?|what runs|scheduled)\b/.test(t) && !/\b(task|showing)\b/.test(t)) {
+    const list = s.automations;
+    const waiting = s.callsWaiting;
+    return { reply: list.length ? `${plural(list.length, 'automation')}${waiting ? `, ${waiting} AI calls waiting for approval` : ''}:\n${bullet(list.map((a) => `**${a.name}** · ${daysLabel(a.days)} at ${a.run_at.slice(0, 5)}${a.enabled ? '' : ' · paused'}`))}\n\nManage them on the Automations page.` : 'No automations yet. Try “every weekday at 8:30 send me a briefing”.', actions: [] };
+  }
+  // Drafted messages: the Follow-Up Agent writes, a person approves and sends.
+  if (/\b(draft|write|prepare|compose|send)\b.*\b(message|text|email|sms|follow[- ]?up|note to)\b/.test(t) && !/\badd\b.*\bnote\b/.test(t)) {
+    if (!lead) return needLead('draft a message for');
+    const purpose = /\b(re-?engage|check in|haven.?t heard|gone quiet|cold|stale)\b/.test(t) ? 're_engagement' : /\b(listings?|propert|homes?|match)/.test(t) ? 'share_property_recommendations' : 'clarify_requirements';
+    return propose({ id: actionId(), kind: 'request_follow_up', summary: `Draft a follow-up to ${lead.name}`, leadId: lead.id, purpose },
+      `I’ll have the Follow-Up Agent draft a message to **${lead.name}**. It lands in Approvals, and nothing is sent until someone approves it.`);
+  }
+  // AI calls: run the call policy first and only propose a call it would allow.
+  if (/\b(call|ring|phone|dial)\b/.test(t) && !/\b(task|remind|follow[- ]?up|calls? (today|this week)|calendar)\b/.test(t)) {
+    if (!lead) return needLead('call');
+    const contact = s.contacts.find((c) => c.id === lead.contactId);
+    const policy = outboundPolicy(s.org, contact, 'phone', { purpose: 'ai_call', byAi: true, at: now });
+    const failed = policy.checks.filter((c) => !c.ok);
+    if (failed.length) {
+      return { reply: `I can’t call **${lead.name}** right now:\n${bullet(failed.map((c) => `${c.label}: ${c.detail ?? 'not met'}`))}\n\nI can create a follow-up task or draft a message for approval instead.`, actions: [] };
+    }
+    return propose({ id: actionId(), kind: 'call_lead', summary: `AI call to ${lead.name}`, leadId: lead.id, reason: lead.firstResponseAt ? 'Follow-up call' : 'First contact' },
+      `**${lead.name}** passes the call checks (consent, calling hours, not suppressed). I’ll have the AI voice agent call them.`);
+  }
+  if (/\b(send|text|email|sms|whatsapp)\b.*\b(him|her|them|lead|client|customer|now)\b/.test(t) && !/\b(task|remind|follow)/.test(t)) {
+    return { reply: 'I can’t send messages myself. Outreach always goes through a person. I can have the Follow-Up Agent draft one for approval, or create a follow-up task. Want me to?', actions: [] };
   }
   if (/\b(create|add|make|new|set up|schedule)\b.*\btask\b|\bremind me\b|\breminder\b/.test(t)) {
     const due = parseWhen(q, now);
@@ -182,6 +217,29 @@ export function demoReply(question: string, s: Snapshot, now: number): Assistant
   return { reply: `I didn’t catch that. In this demo I can answer things like:\n${bullet(EXAMPLES.slice(0, 5).map((e) => `“${e}”`))}`, actions: [] };
 }
 
+function automationKind(t: string): 'daily_briefing' | 'overdue_follow_ups' | 'call_new_leads' | 'reengage_stale' | null {
+  if (/\b(briefing|brief me|summary|digest|morning report|daily report)\b/.test(t)) return 'daily_briefing';
+  if (/\b(call new leads|call every new lead|queue (ai )?calls|calls? for new leads)\b/.test(t)) return 'call_new_leads';
+  if (/\b(re-?engage|stale|gone cold|cold leads)\b/.test(t)) return 'reengage_stale';
+  if (/\b(overdue|follow[- ]?up sweep|sweep)\b/.test(t)) return 'overdue_follow_ups';
+  return null;
+}
+
+function timeOf(t: string): string | null {
+  const m = t.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/) ?? t.match(/\bat (\d{1,2})(?::(\d{2}))?\b/);
+  if (!m) return null;
+  let h = Number(m[1]) % 12 + (m[3] === 'pm' || (!m[3] && Number(m[1]) < 7) ? 12 : 0);
+  if (m[3] === 'am' && Number(m[1]) === 12) h = 0;
+  return `${String(h).padStart(2, '0')}:${m[2] ?? '00'}`;
+}
+
+function daysOf(t: string): number[] {
+  if (/\b(every ?day|daily|each day|7 days)\b/.test(t)) return [0, 1, 2, 3, 4, 5, 6];
+  if (/\bweekends?\b/.test(t)) return [0, 6];
+  const named = WEEKDAYS.map((w, i) => (new RegExp(`\\b${w}s?\\b`).test(t) ? i : -1)).filter((i) => i >= 0);
+  return named.length ? named : [1, 2, 3, 4, 5];
+}
+
 export const EXAMPLES = [
   'How are we doing this month?',
   'Which leads should I call today?',
@@ -191,10 +249,11 @@ export const EXAMPLES = [
   'Remind me to send the Zilker listings tomorrow at 3pm',
   '3-bed homes under $900K in Mueller',
   'How is the pipeline looking?',
+  'Every weekday at 8:30 send me a briefing',
 ];
 
 function help(): AssistantAnswer {
-  return { reply: `I’m your Estate OS assistant. Ask me about your leads, listings, showings, tasks, deals and performance, or ask me to set up work. I propose every change and you confirm it.\n\nTry:\n${bullet(EXAMPLES.slice(0, 6).map((e) => `“${e}”`))}`, actions: [] };
+  return { reply: `I’m your Estate OS assistant. Ask me about your leads, listings, showings, tasks, deals and performance, or ask me to set up work. I propose every change and you confirm it.\n\nTry:\n${bullet([...EXAMPLES.slice(0, 5), EXAMPLES[EXAMPLES.length - 1]].map((e) => `“${e}”`))}`, actions: [] };
 }
 
 function overview(s: Snapshot, now: number, days: number): AssistantAnswer {

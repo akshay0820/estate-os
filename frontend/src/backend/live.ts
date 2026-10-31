@@ -700,7 +700,7 @@ export async function leadFollowUps(leadId: string) {
   return check(await sb().rpc('lead_follow_ups', { p_lead: leadId })) as LeadFollowUpsView;
 }
 
-export async function requestFollowUp(leadId: string, purpose: 'share_property_recommendations' | 'clarify_requirements') {
+export async function requestFollowUp(leadId: string, purpose: 'share_property_recommendations' | 'clarify_requirements' | 're_engagement') {
   const r = check(await sb().rpc('follow_up_request', { p_lead: leadId, p_purpose: purpose, p_idempotency_key: `ui_${crypto.randomUUID().replace(/-/g, '')}` }));
   useLiveRev.getState().bump();
   return r as { run_id: string };
@@ -1286,6 +1286,54 @@ export async function assistantAsk(turns: { role: 'user' | 'assistant'; text: st
     return { status: body?.status ?? 'error', message: body?.message ?? body?.error };
   }
   return data;
+}
+
+/* ─────────── agent automations and the AI call queue (migration 0029) ─────────── */
+
+export interface AutomationRow {
+  id: string; name: string; kind: 'daily_briefing' | 'overdue_follow_ups' | 'call_new_leads' | 'reengage_stale'; enabled: boolean;
+  run_at: string; days: number[]; settings: Record<string, unknown>; next_run_at: string | null; last_run_at: string | null; last_result: Record<string, unknown> | null;
+}
+export interface CallQueueRow { id: string; lead_id: string; reason: string; status: 'pending' | 'approved' | 'declined' | 'expired'; created_at: string; call_id: string | null; lead: { title: string; contact: { display_name: string | null } | null } | null }
+
+export async function automations() {
+  return check(await sb().from('agent_automations').select('id, name, kind, enabled, run_at, days, settings, next_run_at, last_run_at, last_result').eq('organization_id', ctx().orgId).order('run_at')) as AutomationRow[];
+}
+
+export async function automationSave(input: { id?: string; name: string; kind: AutomationRow['kind']; enabled?: boolean; run_at: string; days: number[]; settings?: Record<string, unknown> }) {
+  const r = check(await sb().rpc('automation_save', { p_org: ctx().orgId, p_input: input })) as AutomationRow;
+  useLiveRev.getState().bump();
+  return r;
+}
+
+export async function automationDelete(id: string) {
+  checkMaybe(await sb().rpc('automation_delete', { p_id: id }));
+  useLiveRev.getState().bump();
+}
+
+export async function automationRunNow(id: string) {
+  const r = check(await sb().rpc('automation_run_now', { p_id: id })) as Record<string, unknown>;
+  useLiveRev.getState().bump();
+  return r;
+}
+
+export async function callQueue() {
+  return check(await sb().from('agent_call_queue').select('id, lead_id, reason, status, created_at, call_id, lead:leads(title, contact:contacts(display_name))')
+    .eq('organization_id', ctx().orgId).order('created_at', { ascending: false }).limit(50)) as unknown as CallQueueRow[];
+}
+
+/** Approve = place the AI call (the call policy runs again in voice-calls) and record it; decline = no call. */
+export async function callQueueDecide(item: CallQueueRow, decision: 'approved' | 'declined'): Promise<{ ok: boolean; reason?: string }> {
+  if (decision === 'declined') {
+    check(await sb().rpc('call_queue_decide', { p_item: item.id, p_decision: 'declined' }));
+    useLiveRev.getState().bump();
+    return { ok: true };
+  }
+  const r = await requestAiCall(item.lead_id, `queue_${item.id.replace(/-/g, '')}`);
+  if (!r.call_id || r.status === 'blocked') return { ok: false, reason: r.reason ?? 'The call policy did not allow this call right now.' };
+  check(await sb().rpc('call_queue_decide', { p_item: item.id, p_decision: 'approved', p_call: r.call_id }));
+  useLiveRev.getState().bump();
+  return { ok: true };
 }
 
 export async function siForecastRequest(start: string, end: string) {

@@ -12,7 +12,8 @@ beforeAll(() => {
   setMoneyCurrency('USD');
   const cfg = ORG_CONFIGS[0];
   const d = generateOrg(cfg, NOW);
-  s = { org: cfg.org, me: d.members[0], leads: d.leads.filter((l) => !l.archived), tasks: d.tasks, appointments: d.appointments, properties: d.properties, deals: d.deals, members: d.members } as unknown as Snapshot;
+  s = { org: cfg.org, me: d.members[0], leads: d.leads.filter((l) => !l.archived), tasks: d.tasks, appointments: d.appointments, properties: d.properties, deals: d.deals, members: d.members, contacts: d.contacts,
+    automations: [{ id: 'a1', name: 'Morning briefing', kind: 'daily_briefing', enabled: true, run_at: '08:30', days: [1, 2, 3, 4, 5], settings: {}, next_run_at: null, last_run_at: null, last_result: null }], callsWaiting: 0 } as unknown as Snapshot;
 });
 
 describe('understanding time and names', () => {
@@ -79,9 +80,31 @@ describe('proposed changes', () => {
     expect(demoReply(`add a note to ${l.name}: prefers weekend showings`, s, NOW).actions[0]).toMatchObject({ kind: 'add_note', body: 'prefers weekend showings' });
   });
 
-  it('will not send messages or place calls', () => {
+  it('will not send messages itself', () => {
     const r = demoReply('text her now that the price dropped', s, NOW);
     expect(r.actions).toEqual([]);
     expect(r.reply).toMatch(/can’t send messages/);
+  });
+
+  it('proposes an AI call only when the call policy allows it, and explains why not otherwise', () => {
+    const consented = s.leads.find((l) => s.contacts.find((c) => c.id === l.contactId)?.consents.phone === 'granted' && ['new', 'contacted', 'qualified'].includes(l.status))!;
+    const noConsent = s.leads.find((l) => s.contacts.find((c) => c.id === l.contactId)?.consents.phone !== 'granted' && ['new', 'contacted', 'qualified'].includes(l.status))!;
+    const daytime = new Date(2026, 10, 2, 11, 0).getTime();
+    const yes = demoReply(`call ${consented.name}`, s, daytime);
+    expect(yes.actions[0]).toMatchObject({ kind: 'call_lead', leadId: consented.id });
+    const no = demoReply(`call ${noConsent.name}`, s, daytime);
+    expect(no.actions).toEqual([]);
+    expect(no.reply).toMatch(/can’t call/);
+    expect(no.reply).toMatch(/consent/i);
+  });
+
+  it('drafts follow-ups for approval and schedules automations', () => {
+    const l = s.leads.find((x) => x.status === 'contacted')!;
+    expect(demoReply(`draft a follow-up to ${l.name} with matching listings`, s, NOW).actions[0]).toMatchObject({ kind: 'request_follow_up', purpose: 'share_property_recommendations' });
+    expect(demoReply(`write a message to re-engage ${l.name}`, s, NOW).actions[0]).toMatchObject({ kind: 'request_follow_up', purpose: 're_engagement' });
+    expect(demoReply('Every weekday at 8:30 send me a briefing', s, NOW).actions[0]).toMatchObject({ kind: 'create_automation', automationKind: 'daily_briefing', runAt: '08:30', days: [1, 2, 3, 4, 5] });
+    expect(demoReply('set up a daily overdue sweep at 9am that drafts messages', s, NOW).actions[0]).toMatchObject({ automationKind: 'overdue_follow_ups', runAt: '09:00', days: [0, 1, 2, 3, 4, 5, 6], settings: { draft_messages: true } });
+    expect(demoReply('every monday and friday at 10 queue calls for new leads', s, NOW).actions[0]).toMatchObject({ automationKind: 'call_new_leads', runAt: '10:00', days: [1, 5] });
+    expect(demoReply('what automations do we have?', s, NOW).reply).toMatch(/Morning briefing/);
   });
 });

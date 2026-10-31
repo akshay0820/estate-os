@@ -7,6 +7,7 @@ import { LIVE, useStore } from '@/store/store';
 import { fmtDateTime } from '@/lib/format';
 import type { DealStage, LeadStatus, Priority } from '@/store/types';
 import { demoReply } from './assistantDemo';
+import { draftFollowUp, useDemoAutomations } from './automationsDemo';
 
 export type AssistantAction = { id: string; summary: string } & (
   | { kind: 'create_task'; title: string; dueAt: string; leadId: string | null; assigneeId: string | null; priority: Priority }
@@ -17,7 +18,14 @@ export type AssistantAction = { id: string; summary: string } & (
   | { kind: 'add_note'; leadId: string; body: string }
   | { kind: 'book_showing'; leadId: string; start: string; durationMinutes: number; propertyId: string | null; assigneeId: string | null }
   | { kind: 'move_deal'; dealId: string; stage: DealStage; lostReason: string | null }
+  | { kind: 'call_lead'; leadId: string; reason: string | null }
+  | { kind: 'request_follow_up'; leadId: string; purpose: FollowUpPurpose }
+  | { kind: 'create_automation'; name: string; automationKind: live.AutomationRow['kind']; runAt: string; days: number[]; settings: Record<string, unknown> }
 );
+
+export type { FollowUpPurpose } from './automationRules';
+import { PURPOSE_LABEL, AUTOMATION_LABEL, daysLabel, type FollowUpPurpose } from './automationRules';
+export { AUTOMATION_LABEL, PURPOSE_LABEL, daysLabel } from './automationRules';
 
 export interface ChatTurn { role: 'user' | 'assistant'; text: string }
 export interface AssistantAnswer { reply: string; actions: AssistantAction[]; error?: 'not_configured' | 'rate_limited' | 'paused' | 'failed' }
@@ -52,6 +60,10 @@ export function snapshot() {
     properties: mine(st.properties),
     deals: mine(st.deals),
     members: mine(st.members),
+    contacts: mine(st.contacts),
+    // Demo automations; the live assistant reads them on the server.
+    automations: useDemoAutomations.getState().automations,
+    callsWaiting: useDemoAutomations.getState().queue.filter((q) => q.status === 'pending').length,
   };
 }
 export type Snapshot = ReturnType<typeof snapshot>;
@@ -72,6 +84,9 @@ export function describeAction(a: AssistantAction): [string, string][] {
       case 'add_note': return [['Lead', lead(a.leadId)], ['Note', a.body]];
       case 'book_showing': return [['Lead', lead(a.leadId)], ['When', `${when(a.start)} · ${a.durationMinutes} min`], ['Listing', a.propertyId ? st.properties.find((p) => p.id === a.propertyId)?.title ?? 'Listing' : null], ['With', member(a.assigneeId)]];
       case 'move_deal': return [['Deal', st.deals.find((d) => d.id === a.dealId)?.title ?? 'Deal'], ['New stage', a.stage.replace(/_/g, ' ')], ['Reason', a.lostReason]];
+      case 'call_lead': return [['Lead', lead(a.leadId)], ['Why', a.reason], ['Safety', 'Consent, calling hours and limits are checked again before dialing']];
+      case 'request_follow_up': return [['Lead', lead(a.leadId)], ['Message', PURPOSE_LABEL[a.purpose]], ['Then', 'The draft waits in Approvals; a person sends it']];
+      case 'create_automation': return [['Name', a.name], ['Type', AUTOMATION_LABEL[a.automationKind]], ['Runs', `${daysLabel(a.days)} at ${a.runAt}`], ['Note', 'Prepares work only; calls and messages wait for approval']];
     }
   })();
   return rows.filter((r): r is [string, string] => !!r[1]);
@@ -113,5 +128,30 @@ export async function runAction(a: AssistantAction): Promise<string> {
     case 'move_deal':
       await actions.moveDeal(a.dealId, a.stage, a.lostReason ?? undefined);
       return `Deal moved to ${a.stage.replace(/_/g, ' ')}.`;
+    case 'call_lead': {
+      if (!LIVE) {
+        const p = st.placeCall(a.leadId, { byAi: true });
+        if (!p.allowed) throw new Error(`Not called: ${p.reason ?? 'the call policy did not allow it'}.`);
+        return 'AI call placed. Follow it live on the Calls page.';
+      }
+      const r = await live.requestAiCall(a.leadId, `assistant_${a.id.replace(/[^A-Za-z0-9_-]/g, '').slice(-60)}`);
+      if (r.status === 'blocked') throw new Error(`Not called: ${r.reason ?? 'the call policy did not allow it'}.`);
+      return 'AI call requested. Follow it on the Calls page.';
+    }
+    case 'request_follow_up': {
+      if (!LIVE) {
+        const lead = st.leads.find((l) => l.id === a.leadId);
+        if (!lead || !draftFollowUp(lead, a.purpose)) throw new Error('No draft: the lead has no texting consent, or a draft is already waiting.');
+        return 'Draft ready in Approvals. Nothing is sent until someone approves it.';
+      }
+      await live.requestFollowUp(a.leadId, a.purpose);
+      return 'The Follow-Up Agent is drafting it. Review it in Follow-ups before it is sent.';
+    }
+    case 'create_automation': {
+      const input = { name: a.name, kind: a.automationKind, run_at: a.runAt, days: a.days, settings: a.settings };
+      if (LIVE) await live.automationSave(input);
+      else useDemoAutomations.getState().save(input);
+      return `Automation “${a.name}” scheduled: ${daysLabel(a.days)} at ${a.runAt}.`;
+    }
   }
 }

@@ -1,7 +1,7 @@
 // The workspace assistant: a launcher in the corner and a chat panel. Answers come from lib/assistant (live Edge Function
 // or the demo rules); every change it suggests is shown as a card and runs only when the user confirms it.
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowUp, CalendarPlus, Check, CheckCircle2, ClipboardList, Loader2, NotebookPen, RotateCcw, Sparkles, Timer, UserRoundCog, Workflow, X, XCircle, type LucideIcon } from 'lucide-react';
+import { ArrowUp, CalendarClock, CalendarPlus, Check, CheckCircle2, ClipboardList, Loader2, MessageSquareText, NotebookPen, PhoneCall, RotateCcw, Sparkles, Timer, UserRoundCog, Workflow, X, XCircle, type LucideIcon } from 'lucide-react';
 import { useMe, useOrg } from '@/store/hooks';
 import { LIVE } from '@/store/store';
 import { toast, useUi } from '@/store/ui';
@@ -15,10 +15,12 @@ interface Msg { id: string; role: 'user' | 'assistant'; text: string; actions?: 
 const ICONS: Record<AssistantAction['kind'], LucideIcon> = {
   create_task: ClipboardList, complete_task: CheckCircle2, schedule_follow_up: Timer, update_lead_status: Workflow,
   assign_lead: UserRoundCog, add_note: NotebookPen, book_showing: CalendarPlus, move_deal: Workflow,
+  call_lead: PhoneCall, request_follow_up: MessageSquareText, create_automation: CalendarClock,
 };
 const TITLES: Record<AssistantAction['kind'], string> = {
   create_task: 'Create task', complete_task: 'Complete task', schedule_follow_up: 'Schedule follow-up', update_lead_status: 'Change lead status',
   assign_lead: 'Assign lead', add_note: 'Add note', book_showing: 'Book showing', move_deal: 'Move deal',
+  call_lead: 'AI call', request_follow_up: 'Draft follow-up', create_automation: 'Schedule automation',
 };
 
 let n = 0;
