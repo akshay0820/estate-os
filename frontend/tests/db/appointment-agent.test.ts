@@ -45,6 +45,10 @@ beforeAll(async () => {
   orgB = await t.org(ownerB, 'Other Agency');
   const mk = async (ref: string, title: string) => (await t.as<{ id: string }>(manager, `insert into public.properties (organization_id, reference_code, title, property_type, listing_type, status, price, area_value, locality)
     values ($1, $2, $3, 'apartment', 'sale', 'active', 20000000, 850, 'Worli') returning id`, [org, ref, title]))[0].id;
+  // Every day, all hours: this file's Agent 05 confirmation/reminder/cancellation flows send through
+  // follow_up_mark_sent, which re-checks the messaging window at real wall-clock time; tests must not depend on it.
+  await t.db.query(`update public.organizations set settings = jsonb_set(settings, '{business_hours,days}', '[0,1,2,3,4,5,6]') where id = $1`, [org]);
+  await t.as(owner, `select public.follow_up_settings_save($1, $2::jsonb)`, [org, JSON.stringify({ window: { start: 0, end: 24 }, human_cooldown_hours: 0 })]);
   prop = await mk('AP-1', 'Sea view 2 BHK Worli');
   prop2 = await mk('AP-2', 'Garden 3 BHK Worli');
   lead = (await t.lead(manager, org, { name: 'Ravi Menon', phone: '9844400001', type: 'buyer', locations: ['Worli'], consent_channels: ['whatsapp'] })).lead_id;
