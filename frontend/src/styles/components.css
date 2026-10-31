@@ -422,8 +422,14 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Main + side on the same three tracks as .g-3 (and pairs of .g-kpi-6 columns): the main card spans two, the side
+   card one, so its edges line up with the cards above and below at every width. */
 .g-main-side {
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.g-main-side > :first-child {
+  grid-column: span 2;
 }
 
 .g-side-main {
@@ -2812,9 +2818,6 @@ button.list-row:hover {
 }
 
 @media (max-width: 1280px) {
-  .g-main-side {
-    grid-template-columns: minmax(0, 1fr) 320px;
-  }
   .inbox {
     grid-template-columns: 300px minmax(0, 1fr);
   }
@@ -2828,6 +2831,9 @@ button.list-row:hover {
   .g-side-main,
   .g-3 {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .g-main-side > :first-child {
+    grid-column: auto;
   }
   .search-trigger {
     width: 200px;
