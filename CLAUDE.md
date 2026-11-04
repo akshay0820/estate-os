@@ -126,3 +126,10 @@ zustand store needs a DOM, so test pure helpers from modules that don't import `
   production project yet. Deployment steps are in `docs/production/PRODUCTION_DEPLOYMENT_RUNBOOK.md`.
 - `frontend/test-login.local.md` holds staging test credentials. It is git-ignored; never print its contents.
 - The working copy is on Windows (CRLF). `schema:fingerprint` normalizes line endings.
+
+**Bot protection (Cloudflare Turnstile).** `components/Turnstile.tsx` renders Cloudflare's widget on sign-up and
+"forgot password" in `layout/AuthGate.tsx`, gated by the public `VITE_TURNSTILE_SITE_KEY` (`backend/client.ts`'s
+`turnstileConfigured`) — absent, the widget and the check are both skipped, so local/demo/preview builds are
+unaffected. The matching secret key is configured separately, in Supabase Dashboard → Authentication → Attack
+Protection, which is where the token is actually verified; this repo never holds that secret. `vercel.json`'s CSP
+allows `script-src`/`frame-src`/`connect-src` from `challenges.cloudflare.com` for this reason.

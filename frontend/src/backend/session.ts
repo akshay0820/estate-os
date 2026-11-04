@@ -138,11 +138,11 @@ export async function signIn(email: string, password: string) {
   if (r.error) throw new ApiError('UNAUTHENTICATED', authMessage(r.error.message));
 }
 
-export async function signUp(name: string, email: string, password: string) {
+export async function signUp(name: string, email: string, password: string, captchaToken?: string | null) {
   const r = await supabase().auth.signUp({
     email: email.trim(),
     password,
-    options: { data: { full_name: name.trim() }, emailRedirectTo: `${location.origin}${location.pathname}` },
+    options: { data: { full_name: name.trim() }, emailRedirectTo: `${location.origin}${location.pathname}`, captchaToken: captchaToken ?? undefined },
   });
   if (r.error) throw new ApiError('VALIDATION_ERROR', authMessage(r.error.message));
   // With email confirmation enabled there is no session yet.
@@ -155,9 +155,9 @@ export async function signOut() {
   await supabase().auth.signOut();
 }
 
-export async function requestPasswordReset(email: string) {
+export async function requestPasswordReset(email: string, captchaToken?: string | null) {
   // Same response whether or not the address exists (no account enumeration).
-  await supabase().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${location.origin}${location.pathname}` });
+  await supabase().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${location.origin}${location.pathname}`, captchaToken: captchaToken ?? undefined });
 }
 
 export async function updatePassword(password: string) {

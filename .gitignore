@@ -14,6 +14,7 @@ dist/
 .claude/settings.local.json
 supabase/.temp/
 supabase/.branches/
+.archify/
 
 # OS / editor noise
 .DS_Store

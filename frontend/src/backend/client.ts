@@ -7,6 +7,11 @@ const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
 export const backendConfigured = Boolean(url && key);
 
+// Turnstile's site key is public by design (it only names which widget to render); the matching secret key
+// lives in Supabase Auth's CAPTCHA settings, never in this bundle. Absent, bot-protection is simply skipped.
+export const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+export const turnstileConfigured = Boolean(turnstileSiteKey);
+
 /** Deployment label set at build time (`VITE_APP_ENV`): production builds must set `production` (checked by scripts/predeploy-check.mjs). */
 export const APP_ENV = ((import.meta.env.VITE_APP_ENV as string | undefined) ?? 'development').toLowerCase();
 

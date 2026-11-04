@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { COUNTRIES, TIME_ZONES, browserTimeZone, countryForTimeZone } from '@/lib/region';
 import { ArrowRight, Building, Database, Loader2, LogOut, Mail, MailCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button, Field, Input, Select } from '@/components/ui';
+import { Turnstile, type TurnstileHandle } from '@/components/Turnstile';
 import { Brand } from './Brand';
-import { backendConfigured } from '@/backend/client';
+import { backendConfigured, turnstileConfigured } from '@/backend/client';
 import { toApiError } from '@/backend/errors';
 import {
   acceptInvitationById,
@@ -115,7 +116,11 @@ function SignInFlow() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const invited = !!sessionStorage.getItem('estate-os:invite');
+  // Bot-protected only where abuse is cheap and automatable: creating accounts and sending reset emails.
+  const needsCaptcha = turnstileConfigured && (mode === 'signup' || mode === 'forgot');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,20 +131,22 @@ function SignInFlow() {
       if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) return setError('Use at least 8 characters with letters and numbers.');
     }
     if (mode === 'signin' && !password) return setError('Enter your password.');
+    if (needsCaptcha && !captchaToken) return setError('Complete the verification check.');
     setBusy(true);
     try {
       if (mode === 'signin') await signIn(email, password);
       else if (mode === 'signup') {
-        const r = await signUp(name, email, password);
+        const r = await signUp(name, email, password, captchaToken);
         if (r.needsConfirmation) setMode('check_email');
       } else if (mode === 'forgot') {
-        await requestPasswordReset(email);
+        await requestPasswordReset(email, captchaToken);
         setMode('reset_sent');
       }
     } catch (err) {
       setError(toApiError(err).message);
     } finally {
       setBusy(false);
+      if (needsCaptcha) turnstileRef.current?.reset();
     }
   };
 
@@ -173,19 +180,20 @@ function SignInFlow() {
             <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} />
           </Field>
         )}
+        {needsCaptcha && <Turnstile ref={turnstileRef} onVerify={setCaptchaToken} />}
         {error && <div className="banner danger" role="alert">{error}</div>}
-        <Button type="submit" variant="primary" loading={busy} icon={mode === 'forgot' ? <Mail size={15} /> : <ArrowRight size={15} />}>
+        <Button type="submit" variant="primary" loading={busy} disabled={needsCaptcha && !captchaToken} icon={mode === 'forgot' ? <Mail size={15} /> : <ArrowRight size={15} />}>
           {mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
         </Button>
       </form>
       <div className="row row-between" style={{ fontSize: 13 }}>
         {mode === 'signin' ? (
           <>
-            <button className="link" onClick={() => { setMode('forgot'); setError(null); }}>Forgot password?</button>
-            <button className="link" onClick={() => { setMode('signup'); setError(null); }}>Create an account</button>
+            <button className="link" onClick={() => { setMode('forgot'); setError(null); setCaptchaToken(null); }}>Forgot password?</button>
+            <button className="link" onClick={() => { setMode('signup'); setError(null); setCaptchaToken(null); }}>Create an account</button>
           </>
         ) : (
-          <button className="link" onClick={() => { setMode('signin'); setError(null); }}>Back to sign in</button>
+          <button className="link" onClick={() => { setMode('signin'); setError(null); setCaptchaToken(null); }}>Back to sign in</button>
         )}
       </div>
     </Frame>
