@@ -133,3 +133,12 @@ zustand store needs a DOM, so test pure helpers from modules that don't import `
 unaffected. The matching secret key is configured separately, in Supabase Dashboard → Authentication → Attack
 Protection, which is where the token is actually verified; this repo never holds that secret. `vercel.json`'s CSP
 allows `script-src`/`frame-src`/`connect-src` from `challenges.cloudflare.com` for this reason.
+
+**Voice agent persona.** Agent 02's actual conversation — voice, pacing, backchanneling, and the
+`BLAZE_ESTATE_GENERAL_PROMPT` script — lives in `supabase/functions/_shared/retell-agent-config.ts`, not in the
+Retell dashboard: `frontend/scripts/sync-retell-agent.mjs` pushes it to Retell's live Agent/LLM API (operator-run,
+needs a real `RETELL_API_KEY`, never run automatically). `voice_settings` still only stores the resulting
+`outbound_agent_id`/`inbound_agent_id`; `voice_call_dispatch`'s dynamic variables (`agency_name`,
+`customer_first_name`, `known_*`) and the prompt's placeholders must stay in step — `DYNAMIC_VARIABLE_NAMES` in that
+file is the checklist. The agent still cannot book or confirm anything mid-call (no tool exists for that yet; see
+`docs/agents/AGENT_02_VOICE_CALLING_IMPLEMENTATION.md` §15) — it only gathers context for a human or a later agent.

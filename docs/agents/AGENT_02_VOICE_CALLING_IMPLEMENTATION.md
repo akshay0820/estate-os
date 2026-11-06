@@ -276,7 +276,7 @@ Live checks cover:
 
 1. **Retell account:**
    - Create or import a phone number. India destinations need your own telephony (SIP), since Retell numbers only call US destinations.
-   - Create the voice agent with the prompt in §14.
+   - Create the voice agent by running `RETELL_API_KEY=... node scripts/sync-retell-agent.mjs --voice-id <id>` from `frontend/` (see §14) — don't hand-build it in the dashboard; the persona is versioned code now.
    - In Retell, enable **signed URLs** (`opt_in_signed_url`) on the agent, so recording links expire.
 2. **Webhook:**
    - Point the agent-level (or account-level) webhook URL to `https://jvdnapofyoarhfctbpyi.supabase.co/functions/v1/voice-webhook`.
@@ -301,31 +301,19 @@ Live checks cover:
 
 Workers: nothing to start. pg_cron calls `voice-worker` every minute (URL and secret in Vault). `lead-intake-worker` runs in SQL.
 
-## 14. Recommended Retell agent prompt (configure in Retell)
+## 14. Voice persona and agent config (versioned code, not a dashboard setting)
 
-Available per call (dynamic variables): `{{agency_name}}`, `{{customer_first_name}}`, `{{known_intent}}`, `{{known_locations}}`, `{{known_budget}}`, `{{known_property_type}}`, `{{known_bedrooms}}`, `{{known_timeline}}`.
+`supabase/functions/_shared/retell-agent-config.ts` is the source of truth for the agent's persona (`BLAZE_ESTATE_GENERAL_PROMPT`) and its Retell Agent/LLM settings (voice pacing, backchanneling, expressive mode, handbook flags) — reviewable and tested like any other code (`frontend/tests/retell-agent-config.test.ts`), instead of a setting someone could silently change in the Retell dashboard. `frontend/scripts/sync-retell-agent.mjs` pushes it to Retell's real API (a billed, credentialed, operator-run action — never run automatically):
 
-> You are a virtual assistant calling on behalf of {{agency_name}}, a real-estate agency. Open with: "Hello{{customer_first_name}}, this is the virtual assistant calling on behalf of {{agency_name}} about your recent property enquiry. Is now a convenient time for a brief conversation?"
->
-> **Always:**
-> - If asked whether you are an AI, say yes.
-> - Never claim to be a person or a licensed agent.
-> - Be brief and polite, and let the person interrupt.
-> - Do not repeat a question that has already been answered; already known: intent {{known_intent}}, locations {{known_locations}}, budget {{known_budget}}, type {{known_property_type}}, bedrooms {{known_bedrooms}}, timeline {{known_timeline}}.
-> - Ask only about what is missing, and only while the conversation allows it: buy/rent/sell/invest, preferred area, approximate budget, property type, bedrooms, timeline.
->
-> **Never:**
-> - Never mention specific properties, prices, availability, discounts, legal terms or agency policies.
-> - Never promise a viewing, a call-back time or that anything "has been booked or updated". Say a team member will confirm.
->
-> **When the call needs to change course:**
-> - If the person asks not to be called again, acknowledge it, thank them and end the call (use **end call with reason "user requested do-not-call"**).
-> - If they want a person, or a call back, acknowledge it, say a team member will call back, and end the call (use the **callback** end reason).
-> - If they are driving, busy or distressed, offer a call back and end the call.
->
-> Do not collect ID numbers, financial account details or other sensitive data.
+```bash
+cd frontend
+RETELL_API_KEY=key_... node scripts/sync-retell-agent.mjs --voice-id <id-from-retell-dashboard>
+# Rerun with --llm-id / --agent-id (printed by the first run) to update the same agent in place.
+```
 
-Recording/transcription notice: if your jurisdiction or policy requires it, add the notice to the opening line in Retell, and keep **Store transcripts** off until it is in place.
+Available per call (dynamic variables, filled by `voice_call_dispatch`): `{{agency_name}}`, `{{customer_first_name}}`, `{{known_intent}}`, `{{known_locations}}`, `{{known_budget}}`, `{{known_property_type}}`, `{{known_bedrooms}}`, `{{known_timeline}}`. The persona still honours every rule from the original design: say plainly it's an AI, never claim to be a person, never mention specific properties/prices/availability, never promise a viewing or claim anything is booked (there is still no mid-call booking tool — see §15), and treat an opt-out request as immediate and final. Edit the prompt in that file, not here; this section is no longer the source of truth.
+
+Recording/transcription notice: if your jurisdiction or policy requires it, add the notice to the general prompt, and keep **Store transcripts** off until it is in place.
 
 ## 15. Limitations
 
