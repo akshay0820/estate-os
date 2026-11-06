@@ -9,10 +9,12 @@ import type {
   Commission,
   ConsentState,
   Contact,
+  Conversation,
   Deal,
   DocumentRec,
   Lead,
   Member,
+  Message,
   Notification,
   Organization,
   Property,
@@ -393,6 +395,37 @@ export function toDocument(r: Row, uploaderName: (id: string | null) => string):
     uploadedAt: tsReq(r.created_at),
     status: r.status === 'failed' ? 'failed' : r.status === 'uploaded' ? 'processing' : 'ready',
     expiresAt: ts(r.expires_at),
+  };
+}
+
+export const CONVERSATION_SELECT = `id, organization_id, contact_id, lead_id, channel, status, owner, assigned_to, unread, last_message_at,
+  messages(id, direction, sender, sender_name, body, status, created_at)`;
+
+export function toMessage(r: Row): Message {
+  return {
+    id: r.id,
+    direction: r.direction,
+    sender: r.sender,
+    senderName: r.sender_name,
+    body: r.body,
+    at: tsReq(r.created_at),
+    status: r.status,
+  };
+}
+
+export function toConversation(r: Row): Conversation {
+  return {
+    id: r.id,
+    orgId: r.organization_id,
+    contactId: r.contact_id,
+    leadId: r.lead_id,
+    channel: r.channel,
+    status: r.status,
+    owner: r.owner,
+    assignedTo: r.assigned_to,
+    unread: r.unread,
+    lastMessageAt: tsReq(r.last_message_at),
+    messages: (r.messages ?? []).map(toMessage).sort((a: Message, b: Message) => a.at - b.at),
   };
 }
 

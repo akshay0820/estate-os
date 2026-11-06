@@ -18,6 +18,13 @@ file_size_limit = "20MiB"
 [functions.lead-intake]
 verify_jwt = false
 
+# Postmark does not sign inbound webhook bodies; authenticated by Basic Auth against POSTMARK_INBOUND_SECRET instead.
+[functions.email-inbound]
+verify_jwt = false
+
+[functions.inbox-email]
+verify_jwt = true
+
 # Retell webhooks are authenticated by X-Retell-Signature; the worker by a Vault shared secret.
 [functions.voice-webhook]
 verify_jwt = false

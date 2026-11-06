@@ -11,6 +11,7 @@ import { supabase, functionsUrl } from './client';
 import { ApiError, check, checkMaybe, toApiError, type ErrorCode } from './errors';
 import {
   CONTACT_COLS,
+  CONVERSATION_SELECT,
   LEAD_SELECT,
   PROPERTY_COLS,
   invitationToMember,
@@ -22,6 +23,7 @@ import {
   toAudit,
   toCommission,
   toContact,
+  toConversation,
   toDeal,
   toDocument,
   toLead,
@@ -539,6 +541,69 @@ export async function loadVoiceSettings(): Promise<VoiceSettings | null> {
 export async function saveVoiceSettings(s: VoiceSettings) {
   const { orgId } = ctx();
   checkMaybe(await sb().rpc('voice_settings_save', { p_org: orgId, p: s }));
+  useLiveRev.getState().bump();
+}
+
+/* ─────────── inbox (email channel) ─────────── */
+
+export interface EmailSettings {
+  enabled: boolean; from_address: string | null; from_name: string | null; inbound_address: string | null;
+}
+
+export async function inboxEmailStatus() {
+  return invokeFn<{ postmark_configured: boolean }>('inbox-email/status', { method: 'GET' });
+}
+
+export async function loadEmailSettings(): Promise<EmailSettings | null> {
+  const { orgId } = ctx();
+  return checkMaybe(await sb().from('email_settings').select('*').eq('organization_id', orgId).maybeSingle()) as EmailSettings | null;
+}
+
+export async function saveEmailSettings(s: EmailSettings) {
+  const { orgId } = ctx();
+  checkMaybe(await sb().rpc('email_settings_save', { p_org: orgId, p: s }));
+  useLiveRev.getState().bump();
+}
+
+export interface ConversationContact { id: string; name: string; email: string | null; phone: string | null }
+
+export async function conversations() {
+  const { orgId } = ctx();
+  const rows = check(await sb().from('conversations')
+    .select(`${CONVERSATION_SELECT}, contact:contacts(id, display_name, email, phone)`)
+    .eq('organization_id', orgId).order('last_message_at', { ascending: false }));
+  const contactsById = new Map<string, ConversationContact>();
+  for (const r of rows) {
+    const raw = r.contact as unknown;
+    const c = (Array.isArray(raw) ? raw[0] : raw) as { id: string; display_name: string; email: string | null; phone: string | null } | undefined;
+    if (c) contactsById.set(c.id, { id: c.id, name: c.display_name, email: c.email, phone: c.phone });
+  }
+  return { conversations: rows.map(toConversation), contactsById };
+}
+
+export async function sendConversationMessage(conversationId: string, body: string, opts: { internal?: boolean } = {}) {
+  const r = await invokeFn<{ status: 'sent' | 'blocked'; message_id?: string; reason?: string }>('inbox-email/send', { body: { conversation_id: conversationId, body, internal: !!opts.internal } });
+  useLiveRev.getState().bump();
+  return r;
+}
+
+export async function takeOverConversation(conversationId: string) {
+  checkMaybe(await sb().rpc('conversation_take_over', { p_conv: conversationId }));
+  useLiveRev.getState().bump();
+}
+
+export async function resumeAiConversation(conversationId: string) {
+  checkMaybe(await sb().rpc('conversation_resume_ai', { p_conv: conversationId }));
+  useLiveRev.getState().bump();
+}
+
+export async function setConversationStatus(conversationId: string, status: 'open' | 'pending' | 'resolved') {
+  checkMaybe(await sb().rpc('conversation_set_status', { p_conv: conversationId, p_status: status }));
+  useLiveRev.getState().bump();
+}
+
+export async function markConversationRead(conversationId: string) {
+  checkMaybe(await sb().rpc('conversation_mark_read', { p_conv: conversationId }));
   useLiveRev.getState().bump();
 }
 

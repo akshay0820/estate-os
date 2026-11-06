@@ -8,13 +8,19 @@ import { navigate, setParam } from '@/lib/router';
 import { CHANNEL_LABEL, outboundPolicy } from '@/lib/domain';
 import { fmtTime, money, relTime, sameDay } from '@/lib/format';
 import { cx } from '@/lib/util';
+import { LIVE } from '@/data/actions';
 import type { Conversation, Message } from '@/store/types';
 import { CHANNEL_ICON, LeadStatusBadge, MemberChip } from './shared';
 import { ConsentBadge } from './leads';
+import { LiveInboxPage } from './inboxLive';
 
 type Filter = 'open' | 'mine' | 'ai' | 'human' | 'resolved';
 
 export function InboxPage({ params }: { params: URLSearchParams }) {
+  return LIVE ? <LiveInboxPage params={params} /> : <DemoInboxPage params={params} />;
+}
+
+function DemoInboxPage({ params }: { params: URLSearchParams }) {
   const conversations = useOrgList('conversations');
   const contacts = useLookup('contacts');
   const me = useMe();
@@ -106,7 +112,7 @@ export function InboxPage({ params }: { params: URLSearchParams }) {
   );
 }
 
-function OwnerBadge({ owner }: { owner: Conversation['owner'] }) {
+export function OwnerBadge({ owner }: { owner: Conversation['owner'] }) {
   if (owner === 'ai') return <span className="badge badge-ai" style={{ height: 18 }}><Bot size={10} /> AI</span>;
   if (owner === 'human') return <span className="badge" style={{ height: 18 }}><Hand size={10} /> Human</span>;
   return <span className="badge" style={{ height: 18 }}>Unassigned</span>;
@@ -238,7 +244,7 @@ function Thread({ conv }: { conv: Conversation }) {
   );
 }
 
-function Bubble({ m }: { m: Message }) {
+export function Bubble({ m }: { m: Message }) {
   if (m.direction === 'system') return <div className="msg system">{m.body} · {fmtTime(m.at)}</div>;
   const cls = m.direction === 'internal' ? 'internal' : m.direction === 'in' ? 'in' : cx('out', m.sender === 'ai' && 'ai');
   return (
@@ -255,7 +261,7 @@ function Bubble({ m }: { m: Message }) {
   );
 }
 
-function StatusTick({ status }: { status: Message['status'] }) {
+export function StatusTick({ status }: { status: Message['status'] }) {
   if (status === 'queued') return <Clock size={11} aria-label="Queued" />;
   if (status === 'sent') return <Check size={12} aria-label="Sent" />;
   if (status === 'failed') return <span style={{ color: 'var(--danger)' }}>Failed</span>;

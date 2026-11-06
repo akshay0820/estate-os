@@ -63,7 +63,6 @@ const PAGES: Record<string, Page> = {
 // Pages whose data depends on providers or engines that are not built yet. In live mode they say so
 // instead of showing sample data; demo mode keeps the illustrative versions.
 const NOT_CONNECTED: Record<string, string> = {
-  inbox: 'Messaging needs an approved WhatsApp/SMS/email provider and the consent-gated send pipeline.',
   workflows: 'The workflow engine (durable jobs, retries, exit rules) is the next milestone.',
   approvals: 'Approvals arrive with AI agents and workflows; nothing requests approval yet.',
   logs: 'Execution logs record agent and workflow runs, which start in the next milestone.',

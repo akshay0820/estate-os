@@ -142,3 +142,15 @@ needs a real `RETELL_API_KEY`, never run automatically). `voice_settings` still 
 `customer_first_name`, `known_*`) and the prompt's placeholders must stay in step — `DYNAMIC_VARIABLE_NAMES` in that
 file is the checklist. The agent still cannot book or confirm anything mid-call (no tool exists for that yet; see
 `docs/agents/AGENT_02_VOICE_CALLING_IMPLEMENTATION.md` §15) — it only gathers context for a human or a later agent.
+
+**Unified inbox (email channel).** `features/inbox.tsx` (demo) and `features/inboxLive.tsx` (live) split the same
+way `calls.tsx`/`voice.tsx` do — live mode wasn't wired at all before migration 0031, so `App.tsx`'s `NOT_CONNECTED`
+map used to hide it. `conversations` / `messages` / `email_settings` (migration 0031) are the live backend; the
+Postmark adapter is `supabase/functions/_shared/postmark.ts`, used by `email-inbound` (the inbound webhook, JWT off,
+Basic-Auth-verified against a single platform-wide `POSTMARK_INBOUND_SECRET` — Postmark does not sign its payloads)
+and `inbox-email` (the signed-in send/status API, JWT on, like `voice-calls`). Only email is connected — WhatsApp and
+SMS are not (the `conversations.channel` check constraint only allows `'email'`), and there is no AI auto-responder
+for email: a new conversation always starts `unassigned`, and `conversation_resume_ai` exists only for schema
+forward-compatibility. A blocked reply (consent, suppression, kill switch) is a normal `{blocked: true, reason}`
+result from `conversation_send_request`, not a thrown error — the function also inserts the blocked-message audit
+row, and raising instead would roll that insert back with it.
