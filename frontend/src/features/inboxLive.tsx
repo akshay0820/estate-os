@@ -16,6 +16,7 @@ import * as live from '@/backend/live';
 import type { Conversation } from '@/store/types';
 import { CHANNEL_ICON } from './shared';
 import { Bubble, OwnerBadge } from './inbox';
+import { BRAND } from '../brand';
 
 type Filter = 'open' | 'mine' | 'resolved';
 
@@ -244,7 +245,7 @@ function EmailSettingsModal({ initial, onClose }: { initial: live.EmailSettings 
       <div className="stack">
         <Field label="Enable email"><Switch on={f.enabled} onChange={(v) => set('enabled', v)} label="Enable email" /></Field>
         <Field label="From address" hint="A verified Sender Signature on your Postmark server"><Input value={f.from_address ?? ''} onChange={(e) => set('from_address', e.target.value)} placeholder="leads@youragency.com" /></Field>
-        <Field label="From name" hint="Used in the From header"><Input value={f.from_name ?? ''} onChange={(e) => set('from_name', e.target.value)} placeholder="Blaze Estate" /></Field>
+        <Field label="From name" hint="Used in the From header"><Input value={f.from_name ?? ''} onChange={(e) => set('from_name', e.target.value)} placeholder={BRAND.agencyName} /></Field>
         <Field label="Inbound address" hint="This Postmark Inbound Stream's address — replies are routed to this workspace by matching it">
           <Input value={f.inbound_address ?? ''} onChange={(e) => set('inbound_address', e.target.value)} placeholder="yourhash@inbound.postmarkapp.com" />
         </Field>

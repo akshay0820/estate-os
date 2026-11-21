@@ -10,6 +10,7 @@ import { DAY, ms, pct, relTime } from '@/lib/format';
 import { cx } from '@/lib/util';
 import type { Workflow, WorkflowStepDef } from '@/store/types';
 import { StatusBadge } from './shared';
+import { BRAND } from '../brand';
 
 const KIND_ICON: Record<WorkflowStepDef['kind'], React.ReactNode> = {
   trigger: <Zap size={13} />, condition: <Filter size={13} />, action: <Play size={12} />, delay: <Clock3 size={13} />, ai: <Bot size={13} />, exit: <LogOut size={13} />,
@@ -92,7 +93,7 @@ function WorkflowDrawer({ id, onClose }: { id: string; onClose: () => void }) {
       header={
         <div>
           <h2 style={{ fontSize: 19, fontWeight: 600 }}>{w.name}</h2>
-          <div className="row mt-8"><Badge tone={w.status === 'active' ? 'success' : 'warning'} dot>{w.status}</Badge><span className="faint">v{w.version} · owned by {w.owner === 'n8n' ? 'n8n (tracked here)' : 'Estate OS'}</span></div>
+          <div className="row mt-8"><Badge tone={w.status === 'active' ? 'success' : 'warning'} dot>{w.status}</Badge><span className="faint">v{w.version} · owned by {w.owner === 'n8n' ? 'n8n (tracked here)' : BRAND.productName}</span></div>
         </div>
       }
       footer={canManage ? <Button variant="primary" icon={<FlaskConical size={15} />} onClick={() => setTesting(true)}>Run in test mode</Button> : undefined}

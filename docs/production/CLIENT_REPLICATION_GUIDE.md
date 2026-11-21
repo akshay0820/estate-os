@@ -132,24 +132,22 @@ These are set in the running app or in the database, not in the repository:
 | Pause an agent at launch | **Pilot operations** (agent controls) |
 | Lead import | **Leads → Import** (CSV) |
 
-### 4.2 Branding — small, contained code changes
+### 4.2 Branding — the brand files
 
+The core repository is the template: every brand name lives in one config file, so a rebrand is a handful of lines.
 Keep all branding edits in one commit titled `Client branding: <client>` so they are easy to see in future merges.
 
 | File | What to change |
 |---|---|
-| `frontend/index.html` | `<title>` (currently `Estate OS — BlazeReach`) and the favicon |
-| `frontend/src/layout/Brand.tsx` | Logo mark, wordmark, the "by BlazeReach" line |
-| `frontend/src/styles/tokens.css` | `--ember` / `--accent` (brand colour), light and dark themes |
-| `frontend/src/App.tsx` | Product name in the "Page not found" text |
-| `supabase/functions/_shared/assistant.ts` | Product name in the Estate AI system prompt |
-| `supabase/functions/_shared/retell-agent-config.ts` | `DEFAULT_DYNAMIC_VARIABLES.agency_name`, agent name in `buildRetellAgentConfig` (`agentName` default), `boosted_keywords` |
-| `frontend/src/lib/assistantDemo.ts`, `frontend/src/store/seed.ts` | Demo-mode sample data and names (demo mode only). If you change seed content, bump the persist key `estate-os:data:vN` in `frontend/src/store/store.ts` so browsers reload it |
+| `frontend/src/brand.ts` | `productName` (browser title, sidebar wordmark — its last word becomes the small tag), `company` (the "by …" line; empty hides it), `assistantName`, `agencyName` (voice agent fallback, placeholders), `voiceAgentName` |
+| `supabase/functions/_shared/brand.ts` | The same values. `frontend/tests/brand.test.ts` fails if the two files differ |
+| `frontend/src/styles/tokens.css` | Brand colours: `--ember`, `--flame`, `--amber`, `--blaze` at the top (`--accent` follows `--ember` in both themes) |
+| `frontend/index.html` | The favicon data URI only (the `<title>` is filled from `brand.ts` by `vite.config.ts`) |
+| `frontend/src/layout/Brand.tsx` | The logo mark SVG only, if the client has their own |
+| `frontend/src/store/seed.ts` | Demo-mode sample data (demo mode only). If you change it, bump the persist key `estate-os:data:vN` in `frontend/src/store/store.ts` so browsers reload it |
 
-**Claude Code prompt:** *"In plan mode: rebrand the product for <client> using this brief. Find every user-visible
-product-name and brand-colour string (grep for Estate OS, BlazeReach, Blaze Estate and the accent token). Don't touch
-migrations or test fixtures. Show me the list before editing."* Then run the app in the preview and check the sidebar,
-sign-in page, Estate AI panel, light and dark themes.
+**Claude Code prompt:** *"Rebrand for <client> from this brief: update both brand files, the colour tokens and the
+favicon. Run the brand test, then show me the sidebar, sign-in page and assistant panel in light and dark themes."*
 
 ### 4.3 Voice persona (if voice is in scope)
 

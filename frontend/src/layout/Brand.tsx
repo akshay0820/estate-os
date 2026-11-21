@@ -1,5 +1,12 @@
-// The Estate OS lockup: a gradient tile with a house whose door is a flame (BlazeReach), the wordmark with an "OS" tag,
-// and the "by BlazeReach" line. Rendered as siblings so the sidebar's collapse rules can hide the text and keep the mark.
+// The product lockup: a gradient tile with a house whose door is a flame, the wordmark (last word of BRAND.productName
+// as a small tag) and the "by <company>" line. Rendered as siblings so the sidebar's collapse rules can hide the text
+// and keep the mark. Names come from src/brand.ts.
+import { BRAND } from '../brand';
+
+const words = BRAND.productName.trim().split(/\s+/);
+const tag = words.length > 1 ? words.pop()! : '';
+const word = words.join(' ');
+
 export function Brand() {
   return (
     <>
@@ -17,9 +24,9 @@ export function Brand() {
       </span>
       <div className="sb-name">
         <span className="brand-word">
-          Estate<span className="brand-os">OS</span>
+          {word}{tag && <span className="brand-os">{tag}</span>}
         </span>
-        <small>by BlazeReach</small>
+        {BRAND.company && <small>by {BRAND.company}</small>}
       </div>
     </>
   );

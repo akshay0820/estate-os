@@ -10,6 +10,7 @@
 // No provider adapter exists yet for messaging, email or calendar delivery (see _shared/follow-up-delivery.ts and
 // _shared/calendar-sync.ts) — connecting one of those here only changes what this page shows; it cannot send a
 // message, place a call or write to a calendar until a developer wires a real adapter.
+import { BRAND } from '../brand';
 
 export type IntegrationCategory = 'lead_source' | 'voice' | 'messaging' | 'email' | 'calendar' | 'productivity' | 'marketing' | 'payments' | 'esignature' | 'ai' | 'automation';
 export type AuthType = 'api_key' | 'oauth' | 'env';
@@ -46,7 +47,7 @@ export const INTEGRATION_CATALOG: CatalogEntry[] = [
   // ── Lead sources ──────────────────────────────────────────────────────────
   { id: 'Website form', name: 'Website form', category: 'lead_source', authType: 'env', alwaysOn: true,
     blurb: 'Built into every workspace — no setup needed.', capabilities: ['Lead intake', 'Spam scoring'], scopes: [],
-    envVar: 'Built into Estate OS — nothing to configure' },
+    envVar: `Built into ${BRAND.productName} — nothing to configure` },
   { id: 'Zillow', name: 'Zillow', category: 'lead_source', authType: 'api_key',
     blurb: 'Premier Agent leads via partner API.', capabilities: ['Lead intake'], scopes: ['leads:read'],
     keyLabel: 'Premier Agent API key', keyPlaceholder: 'Paste the key from your Zillow partner dashboard' },

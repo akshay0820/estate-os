@@ -6,6 +6,7 @@ import { OPEN_LEAD, outboundPolicy } from '@/lib/domain';
 import type { Lead, LeadStatus, Member } from '@/store/types';
 import type { AssistantAction, AssistantAnswer, Snapshot } from './assistant';
 import { AUTOMATION_LABEL, daysLabel } from './automationRules';
+import { BRAND } from '../brand';
 
 const DAY = 864e5;
 const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -253,7 +254,7 @@ export const EXAMPLES = [
 ];
 
 function help(): AssistantAnswer {
-  return { reply: `I’m your Estate OS assistant. Ask me about your leads, listings, showings, tasks, deals and performance, or ask me to set up work. I propose every change and you confirm it.\n\nTry:\n${bullet([...EXAMPLES.slice(0, 5), EXAMPLES[EXAMPLES.length - 1]].map((e) => `“${e}”`))}`, actions: [] };
+  return { reply: `I’m your ${BRAND.productName} assistant. Ask me about your leads, listings, showings, tasks, deals and performance, or ask me to set up work. I propose every change and you confirm it.\n\nTry:\n${bullet([...EXAMPLES.slice(0, 5), EXAMPLES[EXAMPLES.length - 1]].map((e) => `“${e}”`))}`, actions: [] };
 }
 
 function overview(s: Snapshot, now: number, days: number): AssistantAnswer {

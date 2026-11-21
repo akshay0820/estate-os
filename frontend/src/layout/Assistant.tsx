@@ -8,6 +8,7 @@ import { toast, useUi } from '@/store/ui';
 import { cx } from '@/lib/util';
 import { ask, describeAction, runAction, type AssistantAction, type ChatTurn } from '@/lib/assistant';
 import { EXAMPLES } from '@/lib/assistantDemo';
+import { BRAND } from '../brand';
 
 type CardState = { status: 'pending' | 'running' | 'done' | 'failed' | 'dismissed'; note?: string };
 interface Msg { id: string; role: 'user' | 'assistant'; text: string; actions?: AssistantAction[]; error?: boolean }
@@ -45,7 +46,7 @@ export function Assistant() {
   return (
     <>
       {!open && (
-        <button className="ai-fab" onClick={() => setOpen(true)} aria-label="Ask Estate AI" title="Ask Estate AI (Ctrl J)">
+        <button className="ai-fab" onClick={() => setOpen(true)} aria-label={`Ask ${BRAND.assistantName}`} title={`Ask ${BRAND.assistantName} (Ctrl J)`}>
           <Sparkles size={20} />
         </button>
       )}
@@ -119,11 +120,11 @@ function Panel({ onClose }: { onClose: () => void }) {
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <aside className="ai-panel" role="dialog" aria-label="Estate AI assistant" onKeyDown={(e) => e.key === 'Escape' && onClose()}>
+    <aside className="ai-panel" role="dialog" aria-label={`${BRAND.assistantName} assistant`} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <header className="ai-head">
         <span className="ai-orb" aria-hidden><Sparkles size={15} /></span>
         <div className="grow" style={{ minWidth: 0 }}>
-          <div className="ai-title">Estate AI {!LIVE && <span className="badge" style={{ marginLeft: 6 }}>Demo</span>}</div>
+          <div className="ai-title">{BRAND.assistantName} {!LIVE && <span className="badge" style={{ marginLeft: 6 }}>Demo</span>}</div>
           <div className="ai-sub">Knows your workspace · asks before changing anything</div>
         </div>
         {msgs.length > 0 && <button className="btn btn-ghost btn-icon btn-sm" onClick={reset} aria-label="New conversation" title="New conversation"><RotateCcw size={15} /></button>}

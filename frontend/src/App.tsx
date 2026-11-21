@@ -11,6 +11,7 @@ import { NoAccess } from '@/features/shared';
 import { useMe } from '@/store/hooks';
 import { can } from '@/lib/permissions';
 import { navigate, useRoute } from '@/lib/router';
+import { BRAND } from './brand';
 
 type Page = ComponentType<{ params: URLSearchParams }>;
 
@@ -95,7 +96,7 @@ function Routed() {
         <Suspense fallback={<PageSkeleton />}>
           {!Page ? (
             <div className="card" style={{ marginTop: 40 }}>
-              <Empty icon={<Compass size={20} />} title="Page not found" description="That address doesn't match anything in Estate OS." action={<Button onClick={() => navigate('dashboard')}>Back to dashboard</Button>} />
+              <Empty icon={<Compass size={20} />} title="Page not found" description={`That address doesn't match anything in ${BRAND.productName}.`} action={<Button onClick={() => navigate('dashboard')}>Back to dashboard</Button>} />
             </div>
           ) : !allowed ? (
             <NoAccess what={nav?.label.toLowerCase()} />

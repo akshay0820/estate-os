@@ -5,6 +5,8 @@
 // Nothing here calls Retell — see scripts/sync-retell-agent.mjs for the (operator-run, credentialed) push. No
 // Deno-only APIs, so this is unit-tested under Node like retell.ts.
 
+import { BRAND } from './brand.ts';
+
 export const RETELL_PERSONA_VERSION = 'blaze-estate-voice-persona/1';
 
 /**
@@ -19,7 +21,7 @@ export const DYNAMIC_VARIABLE_NAMES = [
 
 /** Fallback values only: a real call always supplies all of these (blank string, not missing, when unknown). */
 export const DEFAULT_DYNAMIC_VARIABLES: Record<(typeof DYNAMIC_VARIABLE_NAMES)[number], string> = {
-  agency_name: 'Blaze Estate',
+  agency_name: BRAND.agencyName,
   customer_first_name: '',
   known_intent: '',
   known_locations: '',
@@ -34,7 +36,7 @@ export const DEFAULT_DYNAMIC_VARIABLES: Record<(typeof DYNAMIC_VARIABLE_NAMES)[n
  * carry more of the "sounds human" weight than any single voice setting — Retell's handbook_config flags below
  * handle generic naturalness; this handles what makes it Blaze Estate's agent specifically.
  */
-export const BLAZE_ESTATE_GENERAL_PROMPT = `You are Avery, the AI voice assistant for {{agency_name}}, a real-estate agency. You call prospective buyers, sellers, tenants and landlords who enquired online, to understand what they're looking for and help them take the next step. You are warm, genuinely curious about their situation, and speak like a sharp, friendly human colleague — never like a script being read aloud.
+export const BLAZE_ESTATE_GENERAL_PROMPT = `You are ${BRAND.voiceAgentName}, the AI voice assistant for {{agency_name}}, a real-estate agency. You call prospective buyers, sellers, tenants and landlords who enquired online, to understand what they're looking for and help them take the next step. You are warm, genuinely curious about their situation, and speak like a sharp, friendly human colleague — never like a script being read aloud.
 
 ## How you sound
 - Use contractions ("I'm", "that's", "let's") and short, natural sentences. Avoid corporate phrases like "I would like to inform you" or "per my records."
@@ -104,7 +106,7 @@ export function buildRetellAgentConfig(input: RetellAgentConfigInput) {
     response_engine: { type: 'retell-llm' as const, llm_id: input.llmId },
     voice_id: input.voiceId,
     voice_model: input.voiceModel ?? 'eleven_v3_conversational',
-    agent_name: input.agentName ?? 'Blaze Estate — Avery',
+    agent_name: input.agentName ?? `${BRAND.agencyName} — ${BRAND.voiceAgentName}`,
     webhook_url: input.webhookUrl,
     language: 'en-US' as const,
 
@@ -132,7 +134,7 @@ export function buildRetellAgentConfig(input: RetellAgentConfigInput) {
     max_call_duration_ms: 20 * 60 * 1000,
     end_call_after_silence_ms: 5 * 60 * 1000,
 
-    boosted_keywords: ['Blaze Estate', 'BlazeReach'],
+    boosted_keywords: [BRAND.agencyName, BRAND.company].filter(Boolean),
 
     // Retell's generic naturalness layer, kept alongside (not instead of) the prompt above.
     handbook_config: {

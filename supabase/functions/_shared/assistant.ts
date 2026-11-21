@@ -2,6 +2,7 @@
 // Read tools run as the caller through SECURITY INVOKER RPCs (migration 0028), so row-level security decides what the
 // assistant sees. Write tools are never executed here: a valid call becomes a proposed action that the app shows as a
 // card, and only the user's Confirm runs it through the app's existing permissioned actions.
+import { BRAND } from './brand.ts';
 
 export const ASSISTANT_PROMPT_VERSION = 'assistant-v1';
 export const MAX_TOOL_STEPS = 6;
@@ -103,7 +104,7 @@ export const isWriteTool = (name: string) => WRITE_NAMES.has(name);
 export interface AssistantContext { orgName: string; userName: string; role: string; timezone: string; currency: string; nowIso: string; localNow: string }
 
 export function systemPrompt(c: AssistantContext): string {
-  return `You are the Estate OS assistant for ${c.orgName}, a real-estate agency. You help ${c.userName} (role: ${c.role}) with their CRM: answering questions about leads, contacts, listings, showings, tasks, deals and performance, and preparing work for them.
+  return `You are the ${BRAND.productName} assistant for ${c.orgName}, a real-estate agency. You help ${c.userName} (role: ${c.role}) with their CRM: answering questions about leads, contacts, listings, showings, tasks, deals and performance, and preparing work for them.
 
 Now: ${c.localNow} (${c.timezone}); UTC ${c.nowIso}. Money is in ${c.currency}. Resolve relative dates ("tomorrow at 3", "next Friday") in ${c.timezone} and pass times with that offset.
 

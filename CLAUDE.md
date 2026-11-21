@@ -126,6 +126,9 @@ zustand store needs a DOM, so test pure helpers from modules that don't import `
   production project yet. Deployment steps are in `docs/production/PRODUCTION_DEPLOYMENT_RUNBOOK.md`.
 - **New client deployments:** `docs/production/CLIENT_REPLICATION_GUIDE.md` — per-client repo from this core,
   customization order (config → branding → core features), provisioning, release and updates.
+- **Branding:** product, company, assistant, agency and voice-agent names live in `frontend/src/brand.ts` and its
+  server copy `supabase/functions/_shared/brand.ts` (`tests/brand.test.ts` keeps them identical). Use `BRAND.*`, never
+  a literal name, in new user-visible copy. Colours are the brand tokens at the top of `styles/tokens.css`.
 - `frontend/test-login.local.md` holds staging test credentials. It is git-ignored; never print its contents.
 - The working copy is on Windows (CRLF). `schema:fingerprint` normalizes line endings.
 
