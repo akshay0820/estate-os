@@ -355,7 +355,8 @@ release with Phase 6 (new migrations go through runbook §5 review).
 
 | Claude Code feature | Use it for |
 |---|---|
-| **`CLAUDE.md`** (auto-loaded) | Architecture, commands and rules. In a client repo, add a short `## Client: <name>` section at the end listing the client's domain, enabled channels and customizations, so every session knows the context |
+| **`/new-client <name>`** (project skill, `.claude/skills/new-client/`) | Runs this guide phase by phase, with gates, and tracks the brief and status in `CLIENT.md` so any session can resume. Start every client with it |
+| **`CLAUDE.md`** (auto-loaded) | Architecture, commands and rules. In a client repo, `/new-client` adds one line pointing at `CLIENT.md`, so every session knows the client context |
 | **Plan mode** (Shift+Tab) | Every customization and feature: review the plan before any edit |
 | **Supabase MCP server** | Staging: apply migrations, run SQL, deploy functions, read logs and advisors. Production: connect **read-only**, for verification only |
 | **Built-in browser preview** (`.claude/launch.json`) | Checking UI changes in live (5180) and demo (5181) mode |
@@ -364,11 +365,10 @@ release with Phase 6 (new migrations go through runbook §5 review).
 | **Subagents** (Explore, fork) | Codebase questions and parallel research without filling the main session |
 | **`gh` CLI through Claude** | Branches, PRs, CI status |
 | **Hooks** (`.claude/settings.json`) | Optional guardrails, e.g. block edits to files under `supabase/migrations/` that are already committed, or run `npm run lint` after edits |
-| **Project skills** (`.claude/skills/`) | Optional: turn Phases 3–7 into a `/new-client` checklist skill the team runs per client |
 
 **Prompts that work well**
 
-- *"Read CLAUDE.md and docs/production/CLIENT_REPLICATION_GUIDE.md, then run the Phase 1 baseline checks and report."*
+- *"/new-client Acme Realty"* — starts (or resumes) the whole flow.
 - *"Plan mode. Here is the client brief: … Separate what is configuration (4.1), branding (4.2) and code (4.4)."*
 - *"Add <feature> to the core as an optional organization setting. New migration, RPC with has_perm, DB tests for
   permissions and tenant isolation, demo and live clients in step. Then /code-review."*
