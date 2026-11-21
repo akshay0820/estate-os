@@ -32,7 +32,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, check:functions, test, bui
 **Three parts:**
 - `frontend/`: Vite + React 18 + TypeScript, with a zustand store.
 - `supabase/migrations/`: Postgres. Nearly all business logic lives here.
-- `supabase/functions/`: 14 Deno Edge Functions, with shared code in `_shared/`.
+- `supabase/functions/`: 16 Deno Edge Functions, with shared code in `_shared/`.
 
 **The database is the backend.**
 - Every table is protected by row-level security on organization membership. The browser calls PostgREST with the
@@ -124,6 +124,8 @@ zustand store needs a DOM, so test pure helpers from modules that don't import `
   - `connect-src` must allow the Supabase URL; predeploy checks this.
 - **Supabase:** staging is project `jvdnapofyoarhfctbpyi`, and `frontend/.env.local` points at it. There is no
   production project yet. Deployment steps are in `docs/production/PRODUCTION_DEPLOYMENT_RUNBOOK.md`.
+- **New client deployments:** `docs/production/CLIENT_REPLICATION_GUIDE.md` — per-client repo from this core,
+  customization order (config → branding → core features), provisioning, release and updates.
 - `frontend/test-login.local.md` holds staging test credentials. It is git-ignored; never print its contents.
 - The working copy is on Windows (CRLF). `schema:fingerprint` normalizes line endings.
 
